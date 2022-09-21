@@ -153,7 +153,11 @@ int main(void) {
 						transporte = montoGastado;
 					break;
 				}
+
+				if(hospedaje != 0 && comida != 0 && transporte != 0){
 				banderaCostosCargados = 1;
+				}
+
 			break;
 
 			case 2://------------------------CARGA DE JUGADORES----------------------

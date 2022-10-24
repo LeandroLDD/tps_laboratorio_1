@@ -6,14 +6,9 @@
  ============================================================================
  */
 
-#define MAXDEFENSORESYMEDIOCAMPISTAS 8
-#define MAXARQUEROS 2
-#define MAXDELANTEROS 4
-#define PORCENTAJEDEAUMENTOEUROPEO 35
-#define MAXJUGADORES 22
-
 #include "msjEnPantalla.h"
 #include "leanvectores.h"
+#include "funcFutbol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
@@ -26,8 +21,6 @@ int main(void) {
 	int hospedaje;
 	int comida;
 	int transporte;
-	int costoSeleccionado;
-	float montoGastado;
 	int banderaCostosCargados;
 
 	//Carga de Jugadores
@@ -37,9 +30,7 @@ int main(void) {
 	int mediocampistas;
 	int delanteros;
 	int posicionSeleccionada;
-	int numCamisetaSeleccionada;
 	int camisetasSeleccionadas[MAXJUGADORES];
-	int confederacionSeleccionada;
 	int cantidadUefa;
 	int cantidadConmebol;
 	int cantidadConcacaf;
@@ -47,7 +38,6 @@ int main(void) {
 	int cantidadOfc;
 	int cantidadCaf;
 	int banderaJugadoresCargados;
-	int maximoPosicionSeleccionada;
 
 	//Calculos
 	float promedioUefa;
@@ -112,51 +102,12 @@ int main(void) {
 				"\n4.Informar todos los resultados"
 				"\n5.Salir\n",hospedaje,comida,transporte,arqueros,defensores,mediocampistas,delanteros);
 
-		rptMenuPrincipal = imprYGuardarNumConMinYMax("\nSeleccione una opcion ",1,5,0);
+		rptMenuPrincipal = imprYGuardarNumConMinYMax("\nSeleccione una opcion ","Respuesta invalida",1,5,0);
 
 		switch(rptMenuPrincipal){//switch de opciones del menu principal
 
 			case 1://------------INGRESO DE LOS COSTOS DE MANTENIMIENTO-----------
-				system("cls"); //Limpia la pantalla (Solo funciona con el .exe)
-				printf("\t\tIngreso de los costos de Mantenimiento\n"
-						"\t\t======================================\n"
-						"\n1.Costo de Hospedaje -> $%d"
-						"\n2.Costo de Comida -> $%d"
-						"\n3.Costo de Transporte -> $%d"
-						"\n4.Volver al menu\n",hospedaje,comida,transporte);
-
-				costoSeleccionado = imprYGuardarNumConMinYMax("\nSeleccione un costo ",1, 4,0);
-
-				if(costoSeleccionado == 4){//Si es igual a 4 sale del switch
-				break;
-				}
-
-				do{
-				montoGastado = imprYGuardarNum("\nMonto gastado $");
-
-				if(montoGastado < 1 || montoGastado > 100000000){
-					puts("\nEl monto ingresado NO es valido.");
-				}
-
-				}while(montoGastado < 1 || montoGastado > 100000000);
-
-				switch(costoSeleccionado){//switch de Costos
-					case 1:
-						hospedaje = montoGastado;
-					break;
-
-					case 2:
-						comida = montoGastado;
-					break;
-
-					case 3:
-						transporte = montoGastado;
-					break;
-				}
-
-				if(hospedaje != 0 && comida != 0 && transporte != 0){
-				banderaCostosCargados = 1;
-				}
+				cargarCosto(&hospedaje, &comida, &transporte, &banderaCostosCargados);
 
 			break;
 
@@ -173,111 +124,27 @@ int main(void) {
 						"\n3.Mediocampistas -> %d"
 						"\n4.Delanteros -> %d"
 						"\n5.Volver al menu\n",arqueros,defensores,mediocampistas,delanteros);
+				do{//Do While para validar si la posicion seleccionada llego al limite de jugadores
+					posicionSeleccionada = imprYGuardarNumConMinYMax("\nSeleccione una posicion ","Posicion Invalida",1, 5,0);
+			    }while(posicionSeleccionada != 5 && !validarPosicionDisponible(arqueros, defensores, mediocampistas, delanteros, posicionSeleccionada,1));
 
-				do{//do while para determinar la cantidad maxima por posicion
-					posicionSeleccionada = imprYGuardarNumConMinYMax("\nSeleccione una posicion ",1, 5,0);
-
-					maximoPosicionSeleccionada = 0;
-
-					switch(posicionSeleccionada){
-						case 1:
-							if(arqueros == MAXARQUEROS){
-								maximoPosicionSeleccionada = 1;
-								break;
-							}
-							arqueros++;
-						break;
-
-						case 2:
-							if(defensores == MAXDEFENSORESYMEDIOCAMPISTAS){
-								maximoPosicionSeleccionada = 1;
-								break;
-							}
-							defensores++;
-						break;
-
-						case 3:
-							if(mediocampistas == MAXDEFENSORESYMEDIOCAMPISTAS){
-								maximoPosicionSeleccionada = 1;
-								break;
-							}
-							mediocampistas++;
-						break;
-
-						case 4:
-							if(delanteros == MAXDELANTEROS){
-								maximoPosicionSeleccionada = 1;
-								break;
-							}
-							delanteros++;
-						break;
-					}
-
-					if(maximoPosicionSeleccionada){
-					puts("\nLlego a la cantidad maxima de la posicion seleccionada.");
-					}
-				}while(maximoPosicionSeleccionada);
-
-				if(posicionSeleccionada == 5){ //Si igual a 5 sale del switch
+				if(posicionSeleccionada == 5){
 					break;
 				}
+				pedirPosicionJugador(&arqueros, &defensores, &mediocampistas, &delanteros, posicionSeleccionada);
 
-				do{//do while para validacion de camiseta
-				numCamisetaSeleccionada = imprYGuardarNum("\nIngrese el numero de Camiseta(1-99) ");
+				pedirCamiseta(camisetasSeleccionadas);
 
-				if(buscarValorEnVector(camisetasSeleccionadas,MAXJUGADORES,numCamisetaSeleccionada) && numCamisetaSeleccionada != 0){
-					puts("\nEl numero de Camiseta ya fue seleccionado.");
-				}
+				pedirConfederacion(&cantidadUefa, &cantidadConmebol, &cantidadConcacaf, &cantidadAfc, &cantidadOfc, &cantidadCaf);
 
-				if(numCamisetaSeleccionada < 1 || numCamisetaSeleccionada > 99){
-					puts("\nEl numero de Camiseta seleccionado no esta permitido.");
-				}
-
-				}while(buscarValorEnVector(camisetasSeleccionadas,MAXJUGADORES,numCamisetaSeleccionada) || numCamisetaSeleccionada < 1 || numCamisetaSeleccionada > 99);
-
-				camisetasSeleccionadas[obtenerPosicionEnVector(camisetasSeleccionadas, MAXJUGADORES, 0)] = numCamisetaSeleccionada;
-
-				puts("\n1. UEFA"
-					"\n2. CONMEBOL"
-					"\n3. CONCACAF"
-					"\n4. AFC"
-					"\n5. OFC"
-					"\n6. CAF");
-
-				confederacionSeleccionada = imprYGuardarNumConMinYMax("\nSeleccione una confederacion ", 1, 6, 0);
-
-				switch(confederacionSeleccionada){//Crea una funcion switchIncremental(); fijate el retorno y parameters
-					case 1:
-						cantidadUefa++;
-					break;
-
-					case 2:
-						cantidadConmebol++;
-					break;
-
-					case 3:
-						cantidadConcacaf++;
-					break;
-
-					case 4:
-						cantidadAfc++;
-					break;
-
-					case 5:
-						cantidadOfc++;
-					break;
-
-					case 6:
-						cantidadCaf++;
-					break;
-				}
 				banderaJugadoresCargados = 1;
 				cantidadDeJugadoresTotal = arqueros + defensores + mediocampistas + delanteros;
+
 			break;
 
 			case 3: //-----------------REALIZAR TODOS LOS CALCULOS-----------------
-				if(!banderaCostosCargados || !banderaJugadoresCargados){//Pregunta si faltan datos por cargar
-					imprDobleOpcionIgualACero("\nFaltan cargar datos de ", "Costos", banderaCostosCargados, "Jugadores", banderaJugadoresCargados);
+				if(!validarBanderaBinaria("Faltan cargar Costos", banderaCostosCargados) || !validarBanderaBinaria("Faltan cargar Jugadores", banderaJugadoresCargados)){//Pregunta si faltan datos por cargar
+					//imprDobleOpcionIgualACero("\nFaltan cargar datos de ", "Costos", banderaCostosCargados, "Jugadores", banderaJugadoresCargados);
 					break;
 				};
 

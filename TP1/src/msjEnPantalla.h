@@ -9,7 +9,7 @@ float imprYGuardarNum(char* msj);
  * "return" retorno del valor ingresado en la funcion
  */
 
-float imprYGuardarNumConMinYMax(char* msj, int min, int max, int limpiarSalida);
+float imprYGuardarNumConMinYMax(char *msj, char* msjError, int min, int max, int limpiarSalida);
 /*Imprime un mensaje en consola, pide un valor, lo valida en un rango y lo retorna
  * "msg" mensaje que se va a imprimir
  * "min" validacion minima
@@ -31,5 +31,7 @@ void imprDobleOpcionIgualACero(char *msj,char* msjOpcion1,float valorOpcion1, ch
  * "msjOpcion2" segunda opcion
  * "valorOpcion2" Valor que representa msjOpcion2
  */
+
+int validarBanderaBinaria(char *msjFalse, int bandera);
 
 #endif /* MSJENPANTALLA_H_ */

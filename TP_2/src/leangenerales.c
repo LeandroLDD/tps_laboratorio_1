@@ -188,6 +188,18 @@ int imprYGuardarFloatMayor(char* msj, char* msjError, float *var, float min){
 	return ok;
 	}
 
+int floatACadena(char *str,float num){
+	int ok;
+	ok = 1;
+
+	if(sprintf(str, "%f", num) == -1){
+		perror("Error al convertir entero a cadena");
+		ok = 0;
+	}
+
+	return ok;
+}
+
 //CHAR-----------------------------------------------------------------------------------
 
 int getChar(char* var){

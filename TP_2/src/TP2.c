@@ -15,7 +15,11 @@ int main(void) {
 			{"Baja de jugador",'2'},
 			{"Modificacion de jugador",'3'},
 			{"Informes",'4'},
-			{"Salir",'5'}};
+			{"Salir",'5'}
+//			{"Alta confederacion",'6'},
+//			{"Baja confederacion",'7'},
+//			{"Modificar confederacion",'8'}
+	};
 	eMenu menuInformes[7] ={
 			{"Lista jugadores ordenados por alfabeticamente por nombre de confederacion y nombre de jugador",'1'},
 			{"Lista confederacion con sus jugadores",'2'},
@@ -52,12 +56,18 @@ int main(void) {
 
 /*ESTRUCURA HARDCODEADA.
  * PARA HABILIAR HARDCODEO CAMBIAR EL "tamJugador" DE LA LINEA 66 A LA CANTIDAD DE JUGADORES Y
- * DESCOMENTAR LA LINEA 73
+ * DESCOMENTAR LA LINEA 80
 */
 	eJugador jugador[MAXJUGADOR];
 	eJugador jugadorFiltro[MAXJUGADOR];
 
 	darDeBajaListaJugador(jugador, MAXJUGADOR);
+
+//	int tamConfederacion;
+//	int IDConfederacion;
+//	int idEliminarConfederacion;
+//	tamConfederacion = 6;
+//	IDConfederacion = 0;
 
 	int tamJugador;
 	int IDJugador;
@@ -70,7 +80,7 @@ int main(void) {
 	tamJugador = 0;
 	IDJugador = 0;
 
-	//copiarListaJugador(jugador, jugadorHardcodeado, tamJugador);
+//	copiarListaJugador(jugador, jugadorHardcodeado, tamJugador);
 
 	do{
 		salir = 0;
@@ -82,7 +92,7 @@ int main(void) {
 			break;
 
 			case '2':
-				bajaJugador(jugador, &tamJugador, confederacion, TAMCONFEDERACION);
+				menuBajaJugador(jugador, &tamJugador, confederacion, TAMCONFEDERACION);
 			break;
 
 			case '3':
@@ -140,7 +150,22 @@ int main(void) {
 					salir = 1;
 				};
 			break;
+
+//			case '6':
+//				altaConfederacion(confederacion, TAMCONFEDERACION, &tamConfederacion, &IDConfederacion);
+//			break;
+//
+//			case '7':
+//				if(menuBajaConfederacion(confederacion, &tamConfederacion, &idEliminarConfederacion)){
+//					eliminarConfederacionDeJugador(jugador, tamJugador, idEliminarConfederacion);
+//				}
+//			break;
+//
+//			case '8':
+//				modificarConfederacion(confederacion, tamConfederacion);
+//			break;
 		}
+	reacomodarPosListaJugador(jugador, tamJugador);
 	}while(!salir);
 	return EXIT_SUCCESS;
 }

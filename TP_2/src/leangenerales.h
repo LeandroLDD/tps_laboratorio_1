@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-//SHORT
+//SHORT---------------------------------------------------
 
 /**
  * @brief Pide un valor de tipo short int y lo almacena
@@ -98,6 +98,8 @@ int imprYGuardarFloat(char* msj, float* var);
 int imprYGuardarFloatConMinYMax(char* msj,char* msjError,float* var, float min, float max);
 
 int imprYGuardarFloatMayor(char* msj, char* msjError, float *var, float min);
+
+int floatACadena(char *str,float num);
 
 //CHAR-------------------------------------------------------------------------------------
 

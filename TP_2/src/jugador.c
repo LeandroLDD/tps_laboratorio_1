@@ -24,17 +24,21 @@ int validarSiHayJugadores(eJugador listaJugador[], int tamJugador, int avisar){
 int mostrarJugador(eJugador* unJugador, eConfederacion listaConfederacion[], int tamConfederacion){
 	int ok;
 	int posConfederacion;
+	char nombreConfederacion[50] = "NINGUNA";
 	ok = 0;
 
 	if(unJugador != NULL && unJugador->isEmpty == OCUPADO && tamConfederacion > 0){
-		obtenerConfederacionPorID(listaConfederacion, tamConfederacion, unJugador->idConfederacion, &posConfederacion);
+		ok = 1;
+		if(obtenerConfederacionPorID(listaConfederacion, tamConfederacion, unJugador->idConfederacion, &posConfederacion)){
+			strcpy(nombreConfederacion,listaConfederacion[posConfederacion].nombre);
+		}
 		printf("| %-4d| %-24s| %-14s| %-12hi| %-12.2f| %-14s|   %-15hi|\n",
 				unJugador->id,
 				unJugador->nombre,
 				unJugador->posicion,
 				unJugador->numeroCamiseta,
 				unJugador->salario,
-				listaConfederacion[posConfederacion].nombre,
+				nombreConfederacion,
 				unJugador->aniosContrato);
 	}
 	return ok;
@@ -62,9 +66,12 @@ int darDeBajaListaJugador(eJugador listaJugador[], int tamJugador){
 	int ok;
 	ok = 0;
 
-	for(int i = 0; i < tamJugador ;i++){
-		listaJugador[i].isEmpty = LIBRE;
-		listaJugador[i].id = 0;
+	if(tamJugador > 0){
+		ok = 1;
+		for(int i = 0; i < tamJugador ;i++){
+			listaJugador[i].isEmpty = LIBRE;
+			listaJugador[i].id = 0;
+		}
 	}
 
 	return ok;
@@ -91,7 +98,7 @@ int validarIDJugador(eJugador listaJugador[], int tamJugador, int idBuscar){
 	int banderaEncontroJugador;
 		banderaEncontroJugador = 0;
 
-		if(validarSiHayJugadores(listaJugador, tamJugador, 1) && tamJugador > 0 && idBuscar > 0){
+		if(validarSiHayJugadores(listaJugador, tamJugador, 0) && tamJugador > 0 && idBuscar > 0){
 			for(int i = 0; i < tamJugador; i++){
 
 				if(listaJugador[i].id == idBuscar && listaJugador[i].isEmpty == OCUPADO){
@@ -140,13 +147,13 @@ int obtenerCantidadJugadoresDeUnaConfederacion(eJugador listaJugador[], int tamJ
 	return ok;
 }
 
-int obtenerJugadoresDeUnaConfederacion(eJugador listaJugadorResult[], eJugador listaJugador[], int tamJugador, int idConfederacion){
+int obtenerJugadoresDeUnaConfederacion(eJugador listaJugadorResult[], eJugador listaJugador[], int tamJugador, eConfederacion *unaConfederacion){
 	int contadorJugadores;
 	contadorJugadores = 0;
 
-	if(validarSiHayJugadores(listaJugador, tamJugador, 0)){
+	if(validarUnaConfederacion(unaConfederacion) && validarSiHayJugadores(listaJugador, tamJugador, 0)){
 		for(int i = 0; i < tamJugador; i++){
-			if(listaJugador[i].isEmpty == OCUPADO && listaJugador[i].idConfederacion == idConfederacion){
+			if(listaJugador[i].isEmpty == OCUPADO && listaJugador[i].idConfederacion == unaConfederacion->id){
 				listaJugadorResult[contadorJugadores] = listaJugador[i];
 				contadorJugadores++;
 			}
@@ -202,6 +209,7 @@ int copiarListaJugador(eJugador listaJugadorResult[], eJugador listaJugador[], i
 	ok = 0;
 
 	if(tamJugador > 0){
+		ok = 1;
 		for(int i = 0 ; i < tamJugador; i++){
 			listaJugadorResult[i] = listaJugador[i];
 		}
@@ -215,6 +223,7 @@ int swapearJugadores(eJugador *jugador1, eJugador *jugador2){
 	eJugador jugadorAux;
 	ok = 0;
 	if(jugador1 != NULL && jugador2 != NULL){
+		ok = 1;
 		jugadorAux = *jugador1;
 		*jugador1 = *jugador2;
 		*jugador2 = jugadorAux;
@@ -250,7 +259,7 @@ int reacomodarPosListaJugador(eJugador listaJugador[], int tamJugador){
 		ok = 0;
 		for(int i = 0; i < tamJugador-1; i++){
 			for(int j = i+1; j < tamJugador; j++){
-				if(listaJugador[i].isEmpty > listaJugador[j].isEmpty){
+				if((listaJugador[i].idConfederacion == 0 && listaJugador[j].idConfederacion > 0) || (listaJugador[i].isEmpty > listaJugador[j].isEmpty)){
 					ok = 1;
 					swapearJugadores(&listaJugador[i], &listaJugador[j]);
 				}
@@ -314,7 +323,7 @@ int pedirNumCamisetaJugador(eJugador* unJugador){
 	return ok;
 }
 
-float pedirSalarioJugador(eJugador* unJugador){
+int pedirSalarioJugador(eJugador* unJugador){
 	int ok;
 	ok = 0;
 	if(unJugador != NULL){
@@ -324,7 +333,7 @@ float pedirSalarioJugador(eJugador* unJugador){
 	return ok;
 }
 
-short pedirAniosContrato(eJugador* unJugador){
+int pedirAniosContrato(eJugador* unJugador){
 	int ok;
 	ok = 0;
 	if(unJugador != NULL){
@@ -395,7 +404,10 @@ int altaJugador(eJugador listaJugador[], int maxJugadores, int *tamJugador, eCon
 	if(maxJugadores > 0 && obtenerEspacioLibreJugador(&posJugadorLibre, listaJugador, maxJugadores)){
 		puts("\n\tDAR DE ALTA JUGADOR");
 		ok = 1;
+		do{
 		*id = *id + 1;
+		}while(validarIDJugador(listaJugador, *tamJugador, *id));
+
 		*tamJugador = *tamJugador + 1;
 		listaJugador[posJugadorLibre] = pedirDatosJugador(listaConfederacion, tamConfederacion, *id);
 		imprAviso("¡Se ingreso al jugador exitosamente!");
@@ -416,15 +428,15 @@ eJugador pedirDatosJugador(eConfederacion listaConfederacion[], int tamConfedera
 	return unJugador;
 }
 
-int bajaJugador(eJugador listaJugador[], int* tamJugador, eConfederacion listaConfederacion[], int tamConfederacion){
+int menuBajaJugador(eJugador listaJugador[], int* tamJugador, eConfederacion listaConfederacion[], int tamConfederacion){
 	int ok;
 	int idEliminar;
-	int posEliminar;
 	eJugador jugadoresOrdenadosPorID[*tamJugador];
 	short reconfirmacion;
-	ok = 0;
+	ok = -1;
 
 	if(validarSiHayJugadores(listaJugador, *tamJugador, 1) && *tamJugador > 0 && tamConfederacion > 0){
+		ok = 0;
 		puts("\n\tDAR DE BAJA JUGADOR");
 		ordernarPorIDListaJugador(listaJugador, jugadoresOrdenadosPorID, *tamJugador);
 
@@ -433,16 +445,53 @@ int bajaJugador(eJugador listaJugador[], int* tamJugador, eConfederacion listaCo
 		imprYGuardarShortConMinYMax("¿Desea borrar al jugador?(1. Si | 0. No)", "Respuesta invalida", &reconfirmacion, 0, 1);
 
 		if(reconfirmacion){
-
-			obtenerJugador(listaJugador, *tamJugador, idEliminar, &posEliminar);
-			listaJugador[posEliminar].isEmpty = LIBRE;
-			reacomodarPosListaJugador(listaJugador, *tamJugador);
-
+			ok = 1;
+			bajaUnJugador(listaJugador, *tamJugador, idEliminar, 1);
 			*tamJugador = *tamJugador - 1;
-
-			imprAviso("¡Se elimino al jugador exitosamente!");
 		}
 	}
+	return ok;
+}
+
+int bajaUnJugador(eJugador listaJugador[],int tamJugador, int idEliminar, int avisar){
+	int ok;
+	int posEliminar;
+	ok = 0;
+
+	if(validarSiHayJugadores(listaJugador, tamJugador, 0) && obtenerJugador(listaJugador, tamJugador, idEliminar, &posEliminar)){
+		ok = 1;
+
+		listaJugador[posEliminar].isEmpty = LIBRE;
+		reacomodarPosListaJugador(listaJugador, tamJugador);
+
+		if(avisar){
+		imprAviso("¡Se elimino al jugador exitosamente!");
+		}
+	}
+	return ok;
+}
+
+int eliminarConfederacionDeJugador(eJugador listaJugador[], int tamJugador, int idConfederacionEliminar){
+	int ok;
+	ok = -1;
+	if(validarSiHayJugadores(listaJugador, tamJugador, 0) && idConfederacionEliminar > 0){
+		ok = 0;
+		for(int i = 0; i < tamJugador; i++){
+			if(listaJugador[i].idConfederacion == idConfederacionEliminar){
+				listaJugador[i].idConfederacion = 0;
+				listaJugador[i].aniosContrato = 0;
+				listaJugador[i].salario = 0;
+				ok = 1;
+
+			}
+		}
+
+		if(ok){
+
+		}
+	}
+
+
 	return ok;
 }
 

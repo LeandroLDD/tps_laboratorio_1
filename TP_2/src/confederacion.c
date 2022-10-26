@@ -5,6 +5,7 @@ int swapearConfederaciones(eConfederacion* confederacion1, eConfederacion* confe
 	eConfederacion auxConfederacion;
 	ok = 0;
 	if(confederacion1 != NULL && confederacion2 != NULL){
+		ok = 1;
 		auxConfederacion = *confederacion1;
 		*confederacion1 = *confederacion2;
 		*confederacion2 = auxConfederacion;
@@ -18,6 +19,7 @@ int copiarListaConfederacion(eConfederacion listaConfederacionReturn[], eConfede
 	ok = 0;
 
 	if(validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0)){
+		ok = 1;
 		for(int i = 0 ; i < tamConfederacion; i++){
 			listaConfederacionReturn[i] = listaConfederacion[i];
 		}
@@ -31,6 +33,7 @@ int ordenarListaConfederacionPorID(eConfederacion listaConfedederacionReturn[], 
 	ok = 0;
 
 	if(validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0)){
+
 		ok = 1;
 		copiarListaConfederacion(listaConfedederacionReturn, listaConfederacion, tamConfederacion);
 		for(int i = 0; i < tamConfederacion-1;i++){
@@ -47,9 +50,10 @@ int ordenarListaConfederacionPorID(eConfederacion listaConfedederacionReturn[], 
 
 int obtenerEspacioLibreConfederacion(int* posLibreReturn,eConfederacion listaConfederacion[], int tamConfederacion){
 	int banderaEncontroEspacio;
-		banderaEncontroEspacio = 0;
+		banderaEncontroEspacio = -1;
 
 	if(tamConfederacion > 0){
+		banderaEncontroEspacio = 0;
 		for(int i = 0; i < tamConfederacion;i++){
 			if(listaConfederacion[i].isEmpty == LIBRE){
 				banderaEncontroEspacio = 1;
@@ -99,13 +103,17 @@ int altaConfederacion(eConfederacion listaConfederacion[],int maxConfederaciones
 	int ok;
 		int posConfederacionLibreLibre;
 		ok = 0;
-		if(maxConfederaciones > 0 && obtenerEspacioLibreConfederacion(&posConfederacionLibreLibre, listaConfederacion, *tamConfederacion)){
+		if(maxConfederaciones > 0 && obtenerEspacioLibreConfederacion(&posConfederacionLibreLibre, listaConfederacion, maxConfederaciones)){
 			puts("\n\tDAR DE ALTA CONFEDERACION");
 			ok = 1;
-			*id = *id + 1;
+
+			do{
+				*id = *id + 1;
+			}while(validarConfederacionPorID(listaConfederacion, *tamConfederacion, *id));
+
 			*tamConfederacion = *tamConfederacion + 1;
 			listaConfederacion[posConfederacionLibreLibre] = pedirDatosConfederacion(*id);
-			imprAviso("¡Se ingreso al jugador exitosamente!");
+			imprAviso("¡Se ingreso la confederacion exitosamente!");
 		}
 		return ok;
 }
@@ -120,29 +128,41 @@ eConfederacion pedirDatosConfederacion(int id){
 	return unaConfederacion;
 }
 
-int bajaConfederacion(eConfederacion listaConfederacion[], int *tamConfederacion){
+int menuBajaConfederacion(eConfederacion listaConfederacion[], int *tamConfederacion, int *idEliminar){
 	int ok;
-	int idEliminar;
-	int posEliminar;
 	eConfederacion ConfederacionOrdenadasPorID[*tamConfederacion];
 	short reconfirmacion;
-	ok = 0;
+	ok = -1;
 
 	if(validarSihayConfederaciones(listaConfederacion, *tamConfederacion, 1)){
+		ok = 0;
 		puts("\n\tDAR DE BAJA CONFEDERACION");
 		ordenarListaConfederacionPorID(ConfederacionOrdenadasPorID, listaConfederacion, *tamConfederacion);
 
-		idEliminar = elegirConfederacion(ConfederacionOrdenadasPorID, *tamConfederacion);
+		*idEliminar = elegirConfederacion(ConfederacionOrdenadasPorID, *tamConfederacion);
 		imprYGuardarShortConMinYMax("¿Desea borrar la confederacion?(1. Si | 0. No)", "Respuesta invalida", &reconfirmacion, 0, 1);
 
 		if(reconfirmacion){
-
-			obtenerConfederacionPorID(listaConfederacion, *tamConfederacion, idEliminar, &posEliminar);
-			listaConfederacion[posEliminar].isEmpty = LIBRE;
-			reacomodarPosListaConfederacion(listaConfederacion, *tamConfederacion);
-
+			ok = 1;
+			bajaConfederacion(listaConfederacion, *tamConfederacion, *idEliminar, 1);
 			*tamConfederacion = *tamConfederacion - 1;
+		}
+	}
+	return ok;
+}
 
+int bajaConfederacion(eConfederacion listaConfederacion[], int tamConfederacion, int idEliminar, int avisar){
+	int ok;
+	int posEliminar;
+	ok = 0;
+	if(validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0) && obtenerConfederacionPorID(listaConfederacion, tamConfederacion, idEliminar, &posEliminar)){
+		ok = 1;
+
+		listaConfederacion[posEliminar].isEmpty = LIBRE;
+		reacomodarPosListaConfederacion(listaConfederacion, tamConfederacion);
+		mostrarListaConfederacion(listaConfederacion, tamConfederacion);
+
+		if(avisar){
 			imprAviso("¡Se elimino la confederacion exitosamente!");
 		}
 	}
@@ -210,6 +230,7 @@ int mostrarConfederacion(eConfederacion* unaConfederacion){
 	int ok;
 	ok = 0;
 	if(unaConfederacion != NULL && unaConfederacion->isEmpty == OCUPADO){
+		ok = 1;
 		printf("| %-4d | %-8s | %-22s | %-12d |\n",
 				unaConfederacion->id,
 				unaConfederacion->nombre,
@@ -223,7 +244,7 @@ int mostrarConfederacion(eConfederacion* unaConfederacion){
 int mostrarListaConfederacion(eConfederacion listaConfederacion[], int tamConfederacion){
 	int ok;
 	ok = 0;
-	if(tamConfederacion > 0){
+	if(validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0)){
 		puts("===========================================================\n"
 			 "| ID   | NOMBRE   |   REGION               | AÑO CREACION |\n"
 			 "-----------------------------------------------------------");
@@ -238,6 +259,7 @@ int mostrarListaConfederacion(eConfederacion listaConfederacion[], int tamConfed
 
 int validarSihayConfederaciones(eConfederacion listaConfederacion[], int tamConfederacion, int avisar){
 	int banderaHayConfederaciones;
+	banderaHayConfederaciones = 0;
 
 	if(tamConfederacion > 0){
 		for(int i = 0; i < tamConfederacion; i++){
@@ -251,6 +273,17 @@ int validarSihayConfederaciones(eConfederacion listaConfederacion[], int tamConf
 		imprAviso("¡No hay confederaciones!");
 	}
 	return banderaHayConfederaciones;
+}
+
+int validarUnaConfederacion(eConfederacion *unaConfederacion){
+	int ok;
+	ok = 0;
+
+	if(unaConfederacion != NULL && unaConfederacion->isEmpty == OCUPADO){
+		ok = 1;
+	}
+
+	return ok;
 }
 
 int validarConfederacionPorID(eConfederacion listaConfederacion[], int tamConfederacion, int IDBuscar){
@@ -273,7 +306,7 @@ int obtenerConfederacionPorID(eConfederacion listaConfederacion[], int tamConfed
 	int ok;
 	ok = 0;
 
-	if(tamConfederacion > 0 && IDBuscar > 0){
+	if(validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0) && IDBuscar > 0){
 		for(int i = 0; i < tamConfederacion; i++){
 			if(listaConfederacion[i].id == IDBuscar && listaConfederacion[i].isEmpty == OCUPADO){
 				ok = 1;
@@ -291,7 +324,7 @@ int elegirConfederacion(eConfederacion listaConfederacion[], int tamConfederacio
 	int criterio;
 	idRetorno = 0;
 
-	if(tamConfederacion > 0){
+	if(validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0)){
 
 		mostrarListaConfederacion(listaConfederacion, tamConfederacion);
 

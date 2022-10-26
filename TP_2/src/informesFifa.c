@@ -13,15 +13,16 @@ int ordenarListaJugadorAlfabeticoNomConfederacionNomJugador(eJugador listaJugado
 		for(int i = 0; i < tamJugador-1; i++){
 			for(int j = i+1; j < tamJugador; j++){
 				//Obtengo las posiciones de listaConfederacion con la ID de listaJugadorResult[]
-				obtenerConfederacionPorID(listaConfederacion, tamConfederacion, listaJugadorResult[i].idConfederacion, &posConfederacionI);
-				obtenerConfederacionPorID(listaConfederacion, tamConfederacion, listaJugadorResult[j].idConfederacion, &posConfederacionJ);
-				//Comparo los nombre de las confederaciones con las posiciones obtenidas
-				condicionConfederacion = strcmp(listaConfederacion[posConfederacionI].nombre,listaConfederacion[posConfederacionJ].nombre);
+				if(obtenerConfederacionPorID(listaConfederacion, tamConfederacion, listaJugadorResult[i].idConfederacion, &posConfederacionI) && obtenerConfederacionPorID(listaConfederacion, tamConfederacion, listaJugadorResult[j].idConfederacion, &posConfederacionJ)){
+					//Comparo los nombre de las confederaciones con las posiciones obtenidas
+					condicionConfederacion = strcmp(listaConfederacion[posConfederacionI].nombre,listaConfederacion[posConfederacionJ].nombre);
 
-				if(condicionConfederacion > 0 || (condicionConfederacion == 0 && strcmp(listaJugadorResult[i].nombre,listaJugadorResult[j].nombre) > 0)){
-					swapearJugadores(&listaJugadorResult[i], &listaJugadorResult[j]);
-					ok = 1;
+					if(condicionConfederacion > 0 || (condicionConfederacion == 0 && strcmp(listaJugadorResult[i].nombre,listaJugadorResult[j].nombre) > 0)){
+						swapearJugadores(&listaJugadorResult[i], &listaJugadorResult[j]);
+						ok = 1;
+					}
 				}
+
 			}
 		}
 	}
@@ -35,8 +36,9 @@ int mostrarListaJugadoresPorConfederacion(eJugador listaJugador[], int tamJugado
 	ok = 0;
 
 	if(validarSiHayJugadores(listaJugador, tamJugador, 1) && validarSihayConfederaciones(listaConfederacion, tamConfederacion, 1)){
+
 		for(int i = 0; i < tamConfederacion; i++){
-			tamJugadoresConfederacion = obtenerJugadoresDeUnaConfederacion(jugadoresConfederacion, listaJugador, tamJugador, listaConfederacion[i].id);
+			tamJugadoresConfederacion = obtenerJugadoresDeUnaConfederacion(jugadoresConfederacion, listaJugador, tamJugador, &listaConfederacion[i]);
 			if(tamJugadoresConfederacion > 0){
 			printf("%s\n",listaConfederacion[i].nombre);
 			mostrarListaJugador(jugadoresConfederacion, tamJugadoresConfederacion, listaConfederacion, tamConfederacion);
@@ -71,6 +73,7 @@ int mostrarConfederacionMayorAniosContrato(eJugador listaJugador[], int tamJugad
 	banderaPrimeraConfederacion = 0;
 
 	if(validarSiHayJugadores(listaJugador, tamJugador, 0 && validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0))){
+		ok = 1;
 		for(int i = 0; i < tamConfederacion; i++){
 			aniosContratoConfederacion = obtenerTotalAniosContratoDeConfederacion(listaJugador, tamJugador, listaConfederacion[i].id);
 
@@ -119,15 +122,15 @@ int mostrarPorcentajeDeJugadoresListaConfederacion(eJugador listaJugador[], int 
 
 int obtenerConfederacionConMasJugadores(int *idConfederacionReturn ,eJugador listaJugador[], int tamJugador, eConfederacion listaConfederacion[], int tamConfederacion){
 	int ok;
-	int porcentajeConfederacion;
-	int MAXporcentajeConfederacion;
+	float porcentajeConfederacion;
+	float MAXporcentajeConfederacion;
 	int banderaPrimeraConfederacion;
 	ok = 0;
 	banderaPrimeraConfederacion = 0;
 
 	if(validarSiHayJugadores(listaJugador, tamJugador, 0) && validarSihayConfederaciones(listaConfederacion, tamConfederacion, 0)){
 		ok = 1;
-		for(int i = 0; i < tamJugador; i++){
+		for(int i = 0; i < tamConfederacion; i++){
 			porcentajeConfederacion = obtenerPorcentajeDeJugadoresConfederacion(listaJugador, tamJugador, &listaConfederacion[i]);
 
 			if(!banderaPrimeraConfederacion || porcentajeConfederacion > MAXporcentajeConfederacion){

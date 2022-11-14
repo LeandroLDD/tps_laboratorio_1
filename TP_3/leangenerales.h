@@ -151,7 +151,7 @@ int intACadena(char *str,int num);
  * @param num2 Segundo numero
  * @return Retorna booleano numerico si se realizo o no el swap correctamente
  */
-int swap(int* num1, int* num2);
+int swapear(void* num1, void* num2);
 
 int avisoBinario(int bandera, char* msjVerdadero, char* msjFalso);
 

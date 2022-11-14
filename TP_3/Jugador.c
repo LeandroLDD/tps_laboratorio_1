@@ -219,7 +219,39 @@ int jug_leerText(FILE* pFile,char* idStr,char* nombreCompletoStr,char* edadStr, 
 	}
 	return ok;
 }
+int jug_escribirText(FILE* pArchivo, Jugador* pJugador){
+	int ok;
+	int id;
+	char nombreCompleto[100];
+	int edad;
+	char posicion[30];
+	char nacionalidad[30];
+	int idSeleccion;
+	ok = 0;
 
+	if(pArchivo != NULL && pJugador != NULL){
+		ok = 1;
+		jug_getId(pJugador, &id);
+		jug_getNombreCompleto(pJugador, nombreCompleto);
+		jug_getEdad(pJugador, &edad);
+		jug_getPosicion(pJugador, posicion);
+		jug_getNacionalidad(pJugador, nacionalidad);
+		jug_getIdSeleccion(pJugador, &idSeleccion);
+		fprintf(pArchivo,"%d,%s,%d,%s,%s,%d\n",id,nombreCompleto,edad,posicion,nacionalidad,idSeleccion);
+	}
+	return ok;
+}
+
+int jug_escribirBin(FILE* pArchivo, Jugador* pJugador){
+	int ok;
+	ok = 0;
+
+	if(pArchivo != NULL && pJugador != NULL){
+		ok = 1;
+		fwrite(pJugador,sizeof(Jugador),1,pArchivo);
+	}
+	return ok;
+}
 int jug_mostrar(Jugador* this){
 	int ok;
 

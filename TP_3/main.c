@@ -40,16 +40,23 @@ int main()
     LinkedList* listaJugadores = ll_newLinkedList();
     LinkedList* listaSelecciones = ll_newLinkedList();
     LinkedList* listaGentilicios = ll_newLinkedList();
+    LinkedList* listaAuxiliar;
     char errorNoJugadores[50] = "¡No hay jugadores!";
     int salir;
     int atras;
     int banderaBinaria;
+    int banderaCambiosRealizados;
     int idDisponible;
+    int idAuxiliar;
+    int numAxiliar;
+    char rutaIDs[50] = "jugadorIDdisponible.txt";
     char rutaJugadores[50] = "jugadores.csv";
     char rutaSelecciones[50] = "selecciones.csv";
     char rutaNacionalidades[50] = "nacionalidadesCopaMundial.csv";
+    char rutaJugadoresConfedearcion[50] = "jugadoresDeUnaConfederacion.bin";
     salir = 0;
     idDisponible = 0;
+    banderaCambiosRealizados = 0;
 
     do{
     	atras = 0;
@@ -59,29 +66,49 @@ int main()
         switch(mostrarMenuYElegirOpcionNumerico("MENU FIFA", "Eliga una opcion", "Respuesta invalida", menuPrincipal, 11))
         {
             case 1:
-				controller_leerIDDesdeTXT("jugadorIDdisponible.txt", &idDisponible);
+            	imprYGuardarEnteroConMinYMax("¿Está seguro que desea cargar los archivos?\n"
+            								 "Se perderan todos los cambios no guardados de jugadores y seleccion (1. Si | 0. No) ", "Respuesta invalida", &banderaBinaria, 0, 1);
+            	if(!banderaBinaria){
+            		break;
+            	}
+				controller_leerIDDesdeTXT(rutaIDs, &idDisponible);
 				banderaBinaria = controller_cargarJugadoresDesdeTexto(rutaJugadores,listaJugadores);
 				avisoBinario(banderaBinaria, "¡Se cargaron los jugadores exitosamente!", "¡Error al intentar cargar a los jugadores!");
 
 				banderaBinaria = controller_cargarSeleccionesDesdeTexto(rutaSelecciones,listaSelecciones);
-				if(banderaBinaria){ //Si cargó bien las selecciones, cargara los gentilicios
+				if(banderaBinaria == 1){ //Si cargó bien las selecciones, cargara los gentilicios
 					controller_cargarGentiliciosDesdeTexto(rutaNacionalidades, listaGentilicios);
 				}
 				avisoBinario(banderaBinaria, "¡Se cargaron las selecciones exitosamente!", "¡Error al intentar cargar las selecciones!");
+				banderaCambiosRealizados = 0;
+
 			break;
 
             case 2:
             	banderaBinaria = controller_darDeAltaJugador(listaJugadores, listaSelecciones,listaGentilicios, &idDisponible);
-            	avisoBinario(banderaBinaria, "¡Se cargo al jugador exitosamente!", "¡Error al intentar cargar al jugador!");
+            	if(banderaBinaria == 1){
+            		banderaCambiosRealizados = 1;
+            	}
+            	avisoBinario(banderaBinaria, "¡Se cargo al jugador exitosamente!", "¡Error al intentar cargar al jugador!\n"
+            			"*Posibles cuasas\n"
+            			"- No hay paises cargados\n"
+            			"- No existe la lista de jugadores\n"
+            			"- La id es invalida\n");
 			break;
 
             case 3:
             	banderaBinaria = controller_menuEditarJugador(listaJugadores,listaSelecciones,listaGentilicios);
+            	if(banderaBinaria == 1){
+					banderaCambiosRealizados = 1;
+				}
             	avisoBinarioExtendido(banderaBinaria, "¡Se realizo el cambio exitosamente!", "",errorNoJugadores);
 			break;
 
             case 4:
-            	banderaBinaria = controller_removerJugador(listaJugadores);
+            	banderaBinaria = controller_darDeBajaJugador(listaJugadores, listaSelecciones);
+            	if(banderaBinaria == 1){
+					banderaCambiosRealizados = 1;
+				}
             	avisoBinarioExtendido(banderaBinaria, "¡Jugador eliminado exitosamente!", "", errorNoJugadores);
 			break;
 
@@ -89,7 +116,7 @@ int main()
             	do{
             		switch(mostrarMenuYElegirOpcionAlfanumerico("MENU LISTADOS","Eliga una opcion", "Respuesta invalida", menuListado, 4)){
             			case 'A':
-            				banderaBinaria = controller_listarJugadoresTodosLosDatos(listaJugadores, listaSelecciones);
+            				banderaBinaria = controller_listarJugadores(listaJugadores);
             				avisoBinario(banderaBinaria,"" , errorNoJugadores);
             			break;
 
@@ -118,14 +145,27 @@ int main()
             		switch(mostrarMenuYElegirOpcionAlfanumerico("MENU CONVOCAR JUGADORES", "Eliga una opcion", "Respuesta invalida", menuConvocarJugadores, 3)){
             			case 'A':
             				banderaBinaria = 0;
-            				if(controller_validarLinkedList(listaJugadores)){
-								banderaBinaria = controller_convocarJugador(listaSelecciones, listaJugadores,listaGentilicios);
+            				numAxiliar = 0;
+            				if(!controller_validarLinkedList(listaJugadores) && !controller_validarLinkedList(listaSelecciones)){
+            					imprAviso("¡Faltan jugadores y/o selecciones!");
+            					break;
             				}
-								avisoBinarioExtendido(banderaBinaria, "¡Jugador convocado exitosamente!",errorNoJugadores,"¡Llego a la cantidad maxima de jugadres para está seleccion!");
+            				if(!controller_validarLinkedListFiltro(listaJugadores,controller_esJugadorConvocado,&numAxiliar)){
+            					imprAviso("¡No hay ningun cupo para ninguna seleccion!");
+            					break;
+            				}
+							banderaBinaria = controller_convocarJugador(listaSelecciones, listaJugadores,listaGentilicios);
+							if(banderaBinaria == 1){
+								banderaCambiosRealizados = 1;
+							}
+							avisoBinarioExtendido(banderaBinaria, "¡Jugador convocado exitosamente!","¡No hay jugadores en este pais!","¡Llego a la cantidad maxima de jugadres para está seleccion!");
 						break;
 
             			case 'B':
-            				banderaBinaria = controller_desconvocarJugador(listaJugadores, listaSelecciones);
+            				banderaBinaria = controller_menuDesconvocarJugador(listaJugadores, listaSelecciones);
+            				if(banderaBinaria == 1){
+								banderaCambiosRealizados = 1;
+							}
             				avisoBinarioExtendido(banderaBinaria, "¡Jugador desconvocado exitosamente!","",errorNoJugadores);
 						break;
 
@@ -140,15 +180,23 @@ int main()
             	do{
 					switch(mostrarMenuYElegirOpcionAlfanumerico("MENU ORDENAR Y LISTAR", "Eliga una opcion", "Respuesta invalida", menuOrdenarYListar, 5)){
 						case 'A':
+							banderaBinaria = controller_listarJugadoresOrdenados(listaJugadores, controller_cmpJugadorNacionalidad, -1);
+							avisoBinario(banderaBinaria, "", errorNoJugadores);
 						break;
 
 						case 'B':
+							banderaBinaria = controller_listarSeleccionOrdenadas(listaSelecciones, controller_cmpSeleccionConfederacion, -1);
+							avisoBinario(banderaBinaria, "", "¡No hay selecciones!");
 						break;
 
 						case 'C':
+							banderaBinaria = controller_listarJugadoresOrdenados(listaJugadores, controller_cmpJugadorEdad, -1);
+							avisoBinario(banderaBinaria, "", errorNoJugadores);
 						break;
 
 						case 'D':
+							banderaBinaria = controller_listarJugadoresOrdenados(listaJugadores, controller_cmpJugadorNombre, -1);
+							avisoBinario(banderaBinaria, "", errorNoJugadores);
 						break;
 
 						case 'E':
@@ -159,16 +207,65 @@ int main()
 			break;
 
             case 8:
+            	banderaBinaria = controller_hayJugadoresConvocados(listaJugadores);
+            	if(banderaBinaria == 1){
+            		listaAuxiliar = ll_newLinkedList();
+            		numAxiliar = 1;
+            		controller_obtenerLinkedListFiltro(listaSelecciones, listaAuxiliar, controller_esSeleccionConvocados, &numAxiliar);
+            		idAuxiliar = controller_pedirSeleccionPorID(listaAuxiliar, "Eliga la ID de la confederacion a guardar jugadores");
+
+					controller_guardarJugadoresFiltradosModoBinario(rutaJugadoresConfedearcion, listaJugadores, &idAuxiliar, controller_esJugadorIdSeleccion);
+					ll_deleteLinkedList(listaAuxiliar);
+					imprAviso("¡El archivo binario se genero exitosamente!");
+            	}
+            	else{
+            		imprAviso("¡No hay ningun jugador convocado!");
+            	}
 			break;
 
             case 9:
+            	listaAuxiliar = ll_newLinkedList();
+            	banderaBinaria = controller_cargarJugadoresDesdeBinario(rutaJugadoresConfedearcion, listaAuxiliar);
+            	if(banderaBinaria == 1){
+            		controller_listarJugadores(listaAuxiliar);
+            	}
+            	ll_deleteLinkedList(listaAuxiliar);
+
+            	avisoBinario(banderaBinaria, "", "¡NO se genero el archivo binario!");
 			break;
 
             case 10:
+            	if(!banderaCambiosRealizados){
+					imprAviso("¡Todavia no realizo ningun cambio!");
+					break;
+				}
+            	imprYGuardarEnteroConMinYMax("¿Está seguro que desea guardar todos los\n"
+            								 "cambios de jugadors y selecciones? (1. Si | 0. No)", "Respuesta invalida", &banderaBinaria, 0, 1);
+            	if(!banderaBinaria){
+            		break;
+            	}
+
+				banderaBinaria = controller_guardarJugadoresModoTexto(rutaJugadores, listaJugadores);
+				if(banderaBinaria == 1){
+					controller_escribirIDEnTXT(rutaIDs, idDisponible);
+				}
+				avisoBinario(banderaBinaria, "¡Se guardaron los jugadores exitosamente!", "¡Error al intentar guardar los jugadores");
+
+				banderaBinaria = controller_guardarSeleccionesModoTexto(rutaSelecciones, listaSelecciones);
+				avisoBinario(banderaBinaria, "¡Se guardaron las selecciones exitosamente!", "¡Error al intentar guardar las selecciones");
+				banderaCambiosRealizados = 0;
 			break;
 
             case 11:
-            	salir = 1;
+            	printf("¿Desea sair del programa?(1. Si | 0. No)");
+            	if(banderaCambiosRealizados){
+            		printf("\n*HAY CAMBIOS NO GUARDADOS*\n");
+            	}
+            	imprYGuardarEnteroConMinYMax("", "Respuesta invalida", &banderaBinaria, 0, 1);
+
+            	if(banderaBinaria == 1){
+            		salir = 1;
+            	}
 			break;
         }
     }while(!salir);

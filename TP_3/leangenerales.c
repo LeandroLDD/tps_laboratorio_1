@@ -351,15 +351,16 @@ int intACadena(char* str,int num){
     return ok;
 }
 
-int swap(int* num1, int* num2){
+int swapear(void* num1, void* num2){
     int ok;
-    int aux;
+    void* aux;
     ok = 0;
     
-    if(num1 != num2){
-        aux = *num1;
-        *num1 = *num2;
-        *num2 = aux;
+    if(num1 != NULL && num2 != NULL && num1 != num2){
+        aux = num1;
+        num1 = num2;
+        num2 = aux;
+
         ok = 1;
     }
     

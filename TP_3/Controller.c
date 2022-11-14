@@ -49,10 +49,9 @@ int controller_cargarJugadoresDesdeBinario(char* path , LinkedList* pArrayListJu
 	ok = -1;
 	pArchivo = NULL;
 
-	if(path != NULL && controller_validarLinkedList(pArrayListJugador)){
+	if(path != NULL && pArrayListJugador != NULL){
 		ok = 0;
 		pArchivo = fopen(path,"rb");
-
 		if(pArchivo != NULL){
 			ll_clear(pArrayListJugador);
 			ok = parser_JugadorFromBinary(pArchivo, pArrayListJugador);
@@ -79,8 +78,8 @@ int controller_agregarJugador(LinkedList* pArrayListJugador){
 	if(pArrayListJugador != NULL){
 		jugadorNuevo = jug_new();
 		if(jugadorNuevo != NULL){
-			indiceRetorno = ll_len(pArrayListJugador);
 			ll_add(pArrayListJugador, jugadorNuevo);
+			indiceRetorno =  ll_indexOf(pArrayListJugador, jugadorNuevo);
 		}
 	}
     return indiceRetorno;
@@ -98,7 +97,7 @@ int controller_editarJugador(LinkedList* pArrayListJugador){
 	idModificar = 0;
 
 	if(controller_validarLinkedList(pArrayListJugador)){
-		idModificar = controller_pedirJugadorPorID(pArrayListJugador, "Eliga una ID a modificar",1);
+		idModificar = controller_pedirJugadorPorID(pArrayListJugador, "Eliga la ID del jugador a modificar",1);
 	}
     return idModificar;
 }
@@ -121,9 +120,10 @@ int controller_menuEditarJugador(LinkedList* pArrayListJugador, LinkedList* pArr
 
 	if(controller_validarLinkedList(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion) && controller_validarLinkedList(pArrayListGentilicio)){
 		ok = 0;
+		controller_mostrarUnJugador(ptrJugadorModificar, pArrayListSeleccion);
 		switch(mostrarMenuYElegirOpcionAlfanumerico("Menu Modificar Jugador", "Eliga una opcion", "Opcion invalida", menuModificar, 5)){
 			case 'A':
-				controller_pedirJugadorNombreCommpleto(ptrJugadorModificar);
+				controller_pedirJugadorNombreCompleto(ptrJugadorModificar);
 			break;
 
 			case 'B':
@@ -157,31 +157,13 @@ int controller_menuEditarJugador(LinkedList* pArrayListJugador, LinkedList* pArr
  *
  */
 int controller_removerJugador(LinkedList* pArrayListJugador){
-	Jugador* jugadorEliminar;
-	int ok;
 	int idEliminar;
-	int indiceEliminarLinkedList;
-	int reconfirmacion;
-	ok = -1;
+	idEliminar = -1;
 
 	if(controller_validarLinkedList(pArrayListJugador)){
-		ok = 0;
-		idEliminar = controller_pedirJugadorPorID(pArrayListJugador, "Eliga un jugador a eliminar",1);
-		jugadorEliminar = controller_obtenerJugadorPorID(pArrayListJugador, idEliminar);
-		indiceEliminarLinkedList = ll_indexOf(pArrayListJugador, jugadorEliminar);
-
-		puts("---------------------------------------------------------------------------------");
-		jug_mostrar(jugadorEliminar);
-		puts("\n---------------------------------------------------------------------------------");
-		imprYGuardarEnteroConMinYMax("¿Desea eliminar al jugador elegido?(1. Si | 0. No) ", "Respuesta incorrecta", &reconfirmacion, 0, 1);
-
-		if(reconfirmacion){
-			ok = 1;
-			ll_remove(pArrayListJugador, indiceEliminarLinkedList);
-			jug_delete(jugadorEliminar);
-		}
+		idEliminar = controller_pedirJugadorPorID(pArrayListJugador, "Eliga la ID del jugador a eliminar",1);
 	}
-    return ok;
+    return idEliminar;
 }
 
 /** \brief Listar jugadores
@@ -249,6 +231,23 @@ int controller_listarJugadoresTodosLosDatosFiltro(int (*pFunc)(Jugador* ),Linked
 	}
 	return ok;
 }
+int controller_listarJugadoresOrdenados(LinkedList* pArrayListJugador, int (*ordenamiento)(void*,void*), int orden){
+	int ok;
+	LinkedList* listaOrdenada;
+	ok = 0;
+
+	if(controller_validarLinkedList(pArrayListJugador) && ordenamiento != NULL){
+		ok = 1;
+		listaOrdenada = ll_clone(pArrayListJugador);
+		if(orden != 0 && orden != 1){
+			imprYGuardarEnteroConMinYMax("1. Menor a mayor\n0. Mayor a menor\n", "Respuesta invalida", &orden, 0, 1);
+		}
+		controller_ordenarLista(listaOrdenada, ordenamiento, orden);
+		controller_listarJugadores(listaOrdenada);
+	}
+
+	return ok;
+}
 int controller_mostrarUnJugador(Jugador* pJugador, LinkedList* pArrayListSeleccion){
 	int ok;
 	LinkedList* jugadorMostrar;
@@ -295,8 +294,6 @@ int controller_convocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArr
 	ok = -2;
 	if(controller_validarLinkedList(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion) && controller_validarLinkedList(pArrayListGentilicio)){
 		ok = -1;
-		puts("Aca");
-
 		idSelecConvocar = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga una seleccion");//Pide la id de la selec
 
 		selecConvocar = controller_obtenerSeleccionPorID(pArrayListSeleccion, idSelecConvocar);
@@ -309,7 +306,7 @@ int controller_convocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArr
 			ok = 0;
 			if(controller_obtenerLinkedListFiltro(pArrayListJugador, listaJugadoresConvocar, controller_esJugadorNacionalidad, nacionalidadConcovar)){
 				ok = 1;
-				idJugadorConvocar = controller_pedirJugadorPorID(listaJugadoresConvocar, "Eliga un jugador",1);
+				idJugadorConvocar = controller_pedirJugadorPorID(listaJugadoresConvocar, "Eliga la ID de un jugador",1);
 				JugadorConvocar = controller_obtenerJugadorPorID(pArrayListJugador, idJugadorConvocar);
 
 				jug_setIdSeleccion(JugadorConvocar, idSelecConvocar);
@@ -320,40 +317,50 @@ int controller_convocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArr
 
 	return ok;
 }
-int controller_desconvocarJugador(LinkedList* pArrayListJugador, LinkedList* pArrayListSeleccion){
+int controller_menuDesconvocarJugador(LinkedList* pArrayListJugador, LinkedList* pArrayListSeleccion){
 	int ok;
 	int idJugadorDesconvocar;
-	int idSeleccionDesconvocar;
 	int reconfirmacion;
-	int cantidadConvocados;
 	int auxObtenerConvocado;
 	Jugador* jugadorDesconvocar;
-	Seleccion* selecDesconvocar;
 	LinkedList* listaJugadoresConvocados;
 	ok = -1;
 	reconfirmacion = 0;
 	auxObtenerConvocado = 1;
 
-	if(controller_validarLinkedList(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion) && controller_hayJugadoresConvocados(pArrayListJugador)){
+	if(controller_hayJugadoresConvocados(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion)){
 		ok = 0;
 		listaJugadoresConvocados = ll_newLinkedList();
 
 		controller_obtenerLinkedListFiltro(pArrayListJugador, listaJugadoresConvocados, controller_esJugadorConvocado, &auxObtenerConvocado);
 		controller_listarJugadoresTodosLosDatos(listaJugadoresConvocados, pArrayListSeleccion);
-		idJugadorDesconvocar = controller_pedirJugadorPorID(listaJugadoresConvocados, "Eliga una ID del jugador a desconvocar: ",0);
+		idJugadorDesconvocar = controller_pedirJugadorPorID(listaJugadoresConvocados, "Eliga la ID del jugador a desconvocar ",0);
 		jugadorDesconvocar = controller_obtenerJugadorPorID(listaJugadoresConvocados, idJugadorDesconvocar);
 
 		controller_mostrarUnJugador(jugadorDesconvocar, pArrayListSeleccion);
 		imprYGuardarEnteroConMinYMax("¿Está seguro que desea desconvocar este jugador?(1. Si | 0. No)", "Respuesta invalida", &reconfirmacion, 0, 1);
 		if(reconfirmacion){
 			ok = 1;
-			jug_getIdSeleccion(jugadorDesconvocar, &idSeleccionDesconvocar);
-			jug_setIdSeleccion(jugadorDesconvocar, 0);
-
-			selecDesconvocar = controller_obtenerSeleccionPorID(pArrayListSeleccion, idSeleccionDesconvocar);
-			selec_getConvocados(selecDesconvocar, &cantidadConvocados);
-			selec_setConvocados(selecDesconvocar, cantidadConvocados-1);
+			controller_desconvocarJugador(jugadorDesconvocar, pArrayListSeleccion);
 		}
+	}
+	return ok;
+}
+int controller_desconvocarJugador(Jugador* pJugador, LinkedList* pArrayListSeleccion){
+	int ok;
+	int idSeleccionDesconvocar;
+	int cantidadConvocados;
+	Seleccion* selecDesconvocar;
+	ok = 0;
+
+	if(jug_esConvocado(pJugador) && controller_validarLinkedList(pArrayListSeleccion)){
+		ok = 1;
+		jug_getIdSeleccion(pJugador, &idSeleccionDesconvocar);
+		jug_setIdSeleccion(pJugador, 0);
+
+		selecDesconvocar = controller_obtenerSeleccionPorID(pArrayListSeleccion, idSeleccionDesconvocar);
+		selec_getConvocados(selecDesconvocar, &cantidadConvocados);
+		selec_setConvocados(selecDesconvocar, cantidadConvocados-1);
 	}
 	return ok;
 }
@@ -365,9 +372,11 @@ int controller_desconvocarJugador(LinkedList* pArrayListJugador, LinkedList* pAr
  * \return int
  *
  */
-int controller_ordenarJugadores(LinkedList* pArrayListJugador)
-{
-    return 1;
+int controller_ordenarJugadores(LinkedList* pArrayListJugador){
+	int ok;
+	ok = 0;
+
+    return ok;
 }
 
 /** \brief Guarda los datos de los jugadores en el archivo jugadores.csv (modo texto).
@@ -377,9 +386,28 @@ int controller_ordenarJugadores(LinkedList* pArrayListJugador)
  * \return int
  *
  */
-int controller_guardarJugadoresModoTexto(char* path , LinkedList* pArrayListJugador)
-{
-    return 1;
+int controller_guardarJugadoresModoTexto(char* path , LinkedList* pArrayListJugador){
+	int ok;
+	FILE* pArchivo;
+	Jugador* jugadorAgregar;
+	ok = -1;
+
+	if(path != NULL && pArrayListJugador != NULL){
+		ok = 0;
+
+		pArchivo = fopen(path, "w");
+
+		if(pArchivo != NULL){
+			ok = 1;
+			fprintf(pArchivo,"id,nombreCompleto,edad,posicion,nacionalidad,idSeleccion\n");
+			for(int i = 0; i < ll_len(pArrayListJugador);i++){
+				jugadorAgregar = ll_get(pArrayListJugador, i);
+				jug_escribirText(pArchivo, jugadorAgregar);
+			}
+		}
+		fclose(pArchivo);
+	}
+    return ok;
 }
 
 /** \brief Guarda los datos de los jugadores en el archivo binario.
@@ -389,12 +417,45 @@ int controller_guardarJugadoresModoTexto(char* path , LinkedList* pArrayListJuga
  * \return int
  *
  */
-int controller_guardarJugadoresModoBinario(char* path , LinkedList* pArrayListJugador)
-{
-    return 1;
+int controller_guardarJugadoresModoBinario(char* path , LinkedList* pArrayListJugador){
+	int ok;
+	FILE* pArchivo;
+	Jugador* jugadorAgregar;
+	ok = -1;
+
+	if(path != NULL && pArrayListJugador != NULL){
+		ok = 0;
+
+		pArchivo = fopen(path, "wb");
+
+		if(pArchivo != NULL){
+			ok = 1;
+			for(int i = 0; i < ll_len(pArrayListJugador);i++){
+				jugadorAgregar = ll_get(pArrayListJugador, i);
+				jug_escribirBin(pArchivo, jugadorAgregar);
+			}
+		}
+
+		fclose(pArchivo);
+	}
+	return ok;
 }
+int controller_guardarJugadoresFiltradosModoBinario(char* path , LinkedList* pArrayListJugador, void* criterio, int (*pFunc)(LinkedList*,int indice, void*)){
+	int ok;
+	LinkedList* listaFiltrada;
+	ok = -1;
 
+	if(path != NULL && controller_validarLinkedList(pArrayListJugador) && criterio != NULL && pFunc != NULL){
+		ok = 0;
+		listaFiltrada = ll_newLinkedList();
+		if(controller_obtenerLinkedListFiltro(pArrayListJugador, listaFiltrada, pFunc, criterio)){
+			ok = 1;
+			controller_guardarJugadoresModoBinario(path, listaFiltrada);
+		}
+	}
 
+	return ok;
+}
 
 /** \brief Carga los datos de los selecciones desde el archivo selecciones.csv (modo texto).
  *
@@ -449,7 +510,7 @@ int controller_listarSelecciones(LinkedList* pArrayListSeleccion){
 	int tamSeleccion;
 	ok = 0;
 
-	if(controller_validarLinkedList(pArrayListSeleccion) && !ll_isEmpty(pArrayListSeleccion)){
+	if(controller_validarLinkedList(pArrayListSeleccion)){
 		ok = 1;
 		tamSeleccion = ll_len(pArrayListSeleccion);
 
@@ -462,6 +523,23 @@ int controller_listarSelecciones(LinkedList* pArrayListSeleccion){
 
 	}
     return ok;
+}
+int controller_listarSeleccionOrdenadas(LinkedList* pArrayListSeleccion, int (*ordenamiento)(void*,void*), int orden){
+	int ok;
+	LinkedList* listaOrdenada;
+	ok = 0;
+
+	if(controller_validarLinkedList(pArrayListSeleccion) && ordenamiento != NULL){
+		ok = 1;
+		listaOrdenada = ll_clone(pArrayListSeleccion);
+		if(orden != 0 && orden != 1){
+			imprYGuardarEnteroConMinYMax("1. Menor a mayor\n0. Mayor a menor\n", "Respuesta invalida", &orden, 0, 1);
+		}
+		controller_ordenarLista(listaOrdenada, ordenamiento, orden);
+		controller_listarSelecciones(listaOrdenada);
+	}
+
+	return ok;
 }
 
 /** \brief Ordenar selecciones
@@ -483,9 +561,29 @@ int controller_ordenarSelecciones(LinkedList* pArrayListSeleccion)
  * \return int
  *
  */
-int controller_guardarSeleccionesModoTexto(char* path , LinkedList* pArrayListSeleccion)
-{
-    return 1;
+int controller_guardarSeleccionesModoTexto(char* path , LinkedList* pArrayListSeleccion){
+	int ok;
+	FILE* pArchivo;
+	Seleccion* seleccionAgregar;
+	ok = -1;
+
+	if(path != NULL && pArrayListSeleccion != NULL){
+		ok = 0;
+
+		pArchivo = fopen(path, "w");
+
+		if(pArchivo != NULL){
+			ok = 1;
+			fprintf(pArchivo,"id,pais,confederacion,convocados\n");
+			for(int i = 0; i < ll_len(pArrayListSeleccion);i++){
+				seleccionAgregar = ll_get(pArrayListSeleccion, i);
+				selec_escribirText(pArchivo, seleccionAgregar);
+			}
+		}
+
+		fclose(pArchivo);
+	}
+	return ok;
 }
 
 int controller_darDeAltaJugador(LinkedList* pArrayListJugador, LinkedList* pArrayListSeleccion,LinkedList* pArrayListGentilicio, int *id){
@@ -494,7 +592,7 @@ int controller_darDeAltaJugador(LinkedList* pArrayListJugador, LinkedList* pArra
 	int indiceJugadorNuevo;
 	ok = -1;
 
-	if(pArrayListJugador != NULL && pArrayListSeleccion != NULL && id != NULL){
+	if(pArrayListJugador != NULL && controller_validarLinkedList(pArrayListSeleccion) && id != NULL){
 		ok = 0;
 		indiceJugadorNuevo = controller_agregarJugador(pArrayListJugador);
 		if(indiceJugadorNuevo > -1){
@@ -507,9 +605,39 @@ int controller_darDeAltaJugador(LinkedList* pArrayListJugador, LinkedList* pArra
 
 	return ok;
 }
+int controller_darDeBajaJugador(LinkedList* pArrayListJugador, LinkedList* pArrayListSeleccion){
+	int ok;
+	int indiceEliminarLinkedList;
+	int reconfirmacion;
+	int idEliminar;
+	Jugador* jugadorEliminar;
+	ok = -1;
+
+	if(controller_validarLinkedList(pArrayListJugador)){
+		ok = 0;
+		idEliminar = controller_removerJugador(pArrayListJugador);
+		jugadorEliminar = controller_obtenerJugadorPorID(pArrayListJugador, idEliminar);
+
+		indiceEliminarLinkedList = ll_indexOf(pArrayListJugador, jugadorEliminar);
+
+		controller_mostrarUnJugador(jugadorEliminar, pArrayListSeleccion);
+		imprYGuardarEnteroConMinYMax("¿Desea eliminar al jugador elegido?(1. Si | 0. No) ", "Respuesta incorrecta", &reconfirmacion, 0, 1);
+		if(reconfirmacion){
+			ok = 1;
+			if(jug_esConvocado(jugadorEliminar)){
+				controller_desconvocarJugador(jugadorEliminar, pArrayListSeleccion);
+			}
+			ll_remove(pArrayListJugador, indiceEliminarLinkedList);
+			jug_delete(jugadorEliminar);
+		}
+	}
+
+	return ok;
+}
 int controller_pedirJugadorPorID(LinkedList* pArrayListJugador, char* msj, int imprJugadores){
 	int idElegida;
 	int banderaJugadorExiste;
+	idElegida = -1;
 
 	if(controller_validarLinkedList(pArrayListJugador) && msj != NULL){
 		if(imprJugadores == 1){
@@ -563,65 +691,62 @@ Jugador* controller_obtenerJugadorPorID(LinkedList* pArrayListJugador, int id){
 	}
 	return ptrJugadorRetorno;
 }
-int controller_pedirJugadorNombreCommpleto(Jugador* this){
+int controller_pedirJugadorNombreCompleto(Jugador* this){
 	int ok;
 	char nombreCompleto[100];
-	ok = -1;
+	ok = 0;
 
 	if(this != NULL){
-		ok = 0;
-		if(imprYGuardarCadenaConMinYMax("Ingrese el nombre completo", "Nombre invalido", nombreCompleto, 2, 50, 1)){
-			jug_setNombreCompleto(this, nombreCompleto);
-			ok = 1;
-		}
+		imprYGuardarCadenaConMinYMax("Ingrese el nombre completo", "Nombre invalido", nombreCompleto, 2, 50, 1);
+		jug_setNombreCompleto(this, nombreCompleto);
+		ok = 1;
 	}
 	return ok;
 }
 int controller_pedirJugadorEdad(Jugador* this){
 	int ok;
 	int edad;
-	ok = -1;
+	ok = 0;
 
 	if(this != NULL){
-		ok = 0;
-		if(imprYGuardarEnteroConMinYMax("Ingrese la edad", "Edad invalida", &edad, 2, 100)){
-			jug_setEdad(this, edad);
-			ok = 1;
-		}
+		imprYGuardarEnteroConMinYMax("Ingrese la edad", "Edad invalida", &edad, 2, 100);
+		jug_setEdad(this, edad);
+		ok = 1;
 	}
 	return ok;
 }
 int controller_pedirJugadorPosicion (Jugador* this){
 	int ok;
 	char posicion[30];
-	ok = -1;
+	ok = 0;
 
 	if(this != NULL){
-		ok = 0;
-		if(imprYGuardarCadenaConMinYMax("Ingrese la posicion", "Posicion invalida", posicion, 2, 29,1)){
-			jug_setPosicion(this, posicion);
-			ok = 1;
-		}
+		imprYGuardarCadenaConMinYMax("Ingrese la posicion", "Posicion invalida", posicion, 2, 29,1);
+		jug_setPosicion(this, posicion);
+		ok = 1;
 	}
 	return ok;
 }
 int controller_pedirJugadorNacionalidad(Jugador* this, LinkedList* pArrayListSeleccion, LinkedList* pArrayListGentilicio){
 	int ok;
+	int idPaisElegido;
 	char gentilicio[50];
 	Gentilicio* gentilicioElegido;
-	int idPaisElegido;
+	Seleccion* pPaisElegido;
 	ok = -1;
 
 	if(this != NULL && pArrayListSeleccion != NULL){
 		ok = 0;
+		idPaisElegido = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga la ID del pais");
+		pPaisElegido = controller_obtenerSeleccionPorID(pArrayListSeleccion, idPaisElegido);
+		selec_getPais(pPaisElegido, gentilicio);//De forma predeterminada se guarda el pais
 
-		idPaisElegido = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga la nacionalidad");
 		gentilicioElegido = controller_obtenerGentilicioPorID(idPaisElegido, pArrayListGentilicio);
-		gen_getDescripcion(gentilicioElegido, gentilicio);
-		printf("\ngentilicio: %s\n",gentilicio);
-
+		if(gentilicioElegido != NULL){//Si no existe el gentilicio del pais, se guarda el nombre del pais
+			gen_getDescripcion(gentilicioElegido, gentilicio); //Si encontro el gentilicio, se guarda el gentilicio
+			ok = 1;
+		}
 		jug_setNacionalidad(this, gentilicio);
-		ok = 1;
 	}
 	return ok;
 }
@@ -633,7 +758,7 @@ int controller_pedirJugadorDatos(Jugador* this, LinkedList* pArrayListSeleccion,
 	if(this != NULL && pArrayListSeleccion != NULL){
 		puts("INGRESAR JUGADOR");
 
-		controller_pedirJugadorNombreCommpleto(this);
+		controller_pedirJugadorNombreCompleto(this);
 		controller_pedirJugadorEdad(this);
 		controller_pedirJugadorPosicion(this);
 		controller_pedirJugadorNacionalidad(this,pArrayListSeleccion,pArrayListGentilicio);
@@ -659,20 +784,118 @@ int controller_hayJugadoresConvocados(LinkedList* pArrayListJugador){
 	return banderaHayConvocados;
 }
 
+int controller_cmpJugadorNacionalidad(void* unJugador, void* otroJugador){
+	int cmp;
+	char nacionalidadJug1[50];
+	char nacionalidadJug2[50];
+	Jugador* jugador1;
+	Jugador* jugador2;
+
+	if(unJugador != NULL && otroJugador != NULL){
+		jugador1 = (Jugador*)unJugador;
+		jugador2 = (Jugador*)otroJugador;
+		jug_getNacionalidad(jugador1, nacionalidadJug1);
+		jug_getNacionalidad(jugador2, nacionalidadJug2);
+
+		cmp = strcmp(nacionalidadJug1,nacionalidadJug2);
+	}
+	return cmp;
+}
+int controller_cmpJugadorEdad(void* unJugador, void* otroJugador){
+	int cmp;
+	int edadJug1;
+	int edadJug2;
+	Jugador* jugador1;
+	Jugador* jugador2;
+
+	if(unJugador != NULL && otroJugador != NULL){
+		jugador1 = (Jugador*)unJugador;
+		jugador2 = (Jugador*)otroJugador;
+		jug_getEdad(jugador1, &edadJug1);
+		jug_getEdad(jugador2, &edadJug2);
+
+		cmp = 0;
+
+		if(edadJug1 > edadJug2){
+			cmp = 1;
+		}
+		if(edadJug1 < edadJug2){
+			cmp = -1;
+		}
+	}
+	return cmp;
+}
+int controller_cmpJugadorNombre(void* unJugador, void* otroJugador){
+	int cmp;
+	char nombreJug1[50];
+	char nombreJug2[50];
+	Jugador* jugador1;
+	Jugador* jugador2;
+
+	if(unJugador != NULL && otroJugador != NULL){
+		jugador1 = (Jugador*)unJugador;
+		jugador2 = (Jugador*)otroJugador;
+		jug_getNombreCompleto(jugador1, nombreJug1);
+		jug_getNombreCompleto(jugador2, nombreJug2);
+
+		cmp = strcmp(nombreJug1,nombreJug2);
+	}
+	return cmp;
+}
+int controller_cmpSeleccionConfederacion(void* unaConfederacion, void* otraConfederacion){
+	int cmp;
+	char confeSelec1[50];
+	char confeSelec2[50];
+	Seleccion* seleccion1;
+	Seleccion* seleccion2;
+
+	if(unaConfederacion != NULL && otraConfederacion != NULL){
+		seleccion1 = (Seleccion*)unaConfederacion;
+		seleccion2 = (Seleccion*)otraConfederacion;
+		selec_getConfederacion(seleccion1, confeSelec1);
+		selec_getConfederacion(seleccion2, confeSelec2);
+
+		cmp = strcmp(confeSelec1,confeSelec2);
+	}
+	return cmp;
+}
+
 int controller_esJugadorConvocado(LinkedList* pArrayListJugador,int indiceArray, void* convocadoCtr){
 	int ok;
 	int idSeleccion;
+	int *banderaConvocado;
 	Jugador* auxJugador;
 	ok = -1;
 
 	if(controller_validarLinkedList(pArrayListJugador) && convocadoCtr != NULL){
 		ok = 0;
+		banderaConvocado = convocadoCtr;
 		auxJugador = ll_get(pArrayListJugador, indiceArray);
 		jug_getIdSeleccion(auxJugador, &idSeleccion);
-		if(convocadoCtr == 1 && idSeleccion != 0){
+		if(*banderaConvocado == 1 && idSeleccion != 0){
 			ok = 1;
 		}
-		if(convocadoCtr == 0 && idSeleccion == 0){
+		if(*banderaConvocado == 0 && idSeleccion == 0){
+			ok = 1;
+		}
+	}
+
+	return ok;
+}
+int controller_esJugadorIdSeleccion(LinkedList* pArrayListJugador,int indiceArray, void* idSeleccionCtr){
+	int ok;
+	int idSeleccionJug;
+	int *idSeleccionCriterio;
+	Jugador* auxJugador;
+	ok = -1;
+
+	if(controller_validarLinkedList(pArrayListJugador) && idSeleccionCtr != NULL){
+		ok = 0;
+		idSeleccionCriterio = idSeleccionCtr;
+		auxJugador = ll_get(pArrayListJugador, indiceArray);
+		jug_getIdSeleccion(auxJugador, &idSeleccionJug);
+
+		if(idSeleccionJug == *idSeleccionCriterio){
 			ok = 1;
 		}
 	}
@@ -702,6 +925,7 @@ int controller_esJugadorNacionalidad(LinkedList* pArrayListJugador,int indiceArr
 int controller_pedirSeleccionPorID(LinkedList* pArrayListSeleccion, char* msj){
 	int idElegida;
 	int banderaSeleccionExiste;
+	idElegida = -1;
 
 	if(controller_validarLinkedList(pArrayListSeleccion) && !ll_isEmpty(pArrayListSeleccion)){
 		controller_listarSelecciones(pArrayListSeleccion);
@@ -753,6 +977,30 @@ Seleccion* controller_obtenerSeleccionPorID(LinkedList* pArrayListSeleccion, int
 	return ptrSeleccionRetorno;
 }
 
+int controller_esSeleccionConvocados(LinkedList* pArrayListSeleccion, int indiceArray, void* validConvocados){
+	int ok;
+	int *banderaValidarConvocados;
+	int cantidadConvocados;
+	Seleccion* auxSeleccion;
+	ok = -1;
+
+	if(controller_validarLinkedList(pArrayListSeleccion)){
+		ok = 0;
+		banderaValidarConvocados = validConvocados;
+		auxSeleccion = ll_get(pArrayListSeleccion, indiceArray);
+		selec_getConvocados(auxSeleccion, &cantidadConvocados);
+
+		if(cantidadConvocados > 0 && *banderaValidarConvocados == 1){
+			ok = 1;
+		}
+		if(cantidadConvocados == 0 && *banderaValidarConvocados == 0){
+			ok = 0;
+		}
+	}
+
+	return ok;
+}
+
 int controller_leerIDDesdeTXT(char* rutaID, int* idRetorno){
 	FILE* pArchivo;
 	int ok;
@@ -799,6 +1047,18 @@ int controller_IDAsignar(int* id){
 	}
 
 	return idRetorno;
+}
+
+int controller_ordenarLista(LinkedList* pArrayList, int (*ordenamiento)(void*,void*), int orden){
+	int ok;
+		ok = 0;
+
+	if(controller_validarLinkedList(pArrayList) && ordenamiento != NULL){
+		ok = 1;
+		ll_sort(pArrayList, ordenamiento, orden);
+	}
+
+	return ok;
 }
 
 int controller_cargarGentiliciosDesdeTexto(char* ruta, LinkedList* pArrayListGentilicio){
@@ -870,51 +1130,17 @@ int controller_obtenerLinkedListFiltro(LinkedList* pArrayList, LinkedList* pArra
 	}
 	return ok;
 }
+int controller_validarLinkedListFiltro(LinkedList* pArrayList, int (*pFunc)(LinkedList*,int indice, void*), void* criterio){
+	int ok;
+	ok = -1;
 
-//int controller_escribirNacionalidades(char* ruta){
-//	int ok;
-//	ok = 0;
-//	FILE* pArchivo;
-//
-//	Gentilicio nacionalidades[32] = {
-//			{27,"Qatari"},
-//			{13,"Ecuatoriano"},
-//			{28,"Senegales"},
-//			{19,"Holandes"},
-//			{20,"Ingles"},
-//			{21,"Irani"},
-//			{15,"Estado Unidense"},
-//			{17,"Gales"},
-//			{3,"Argentino"},
-//			{2,"Saudita"},
-//			{24,"Mexicano"},
-//			{25,"Polaco"},
-//			{14,"Espanol"},
-//			{10,"Costarricense"},
-//			{1,"Aleman"},
-//			{22,"Japones"},
-//			{5,"Belga"},
-//			{8,"Canadiense"},
-//			{23,"Marroqui"},
-//			{11,"Croata"},
-//			{6,"Brasilero"},
-//			{29,"Serbio"},
-//			{30,"Suizo"},
-//			{7,"Camerunes"},
-//			{26,"Portugues"},
-//			{18,"Ghanes"},
-//			{32,"Uruguayo"},
-//			{9,"Surcoreano"},
-//			{16,"Frances"},
-//			{4,"Australiano"},
-//			{12,"Danes"},
-//			{31,"Tunecito"}};
-//
-//	pArchivo = fopen("nacionalidadesCopaMundial.csv","w");
-//
-//	for(int i = 0 ; i < 32; i++){
-//		fprintf(pArchivo,"%d,%s\n",nacionalidades[i].idSeleccion,nacionalidades[i].descripcion);
-//	}
-//	fclose(pArchivo);
-//	return ok;
-//}
+	if(controller_validarLinkedList(pArrayList) && pFunc != NULL){
+		ok = 0;
+		for(int i = 0 ; i < ll_len(pArrayList); i++){
+			if(pFunc(pArrayList,i,criterio)){
+				ok = 1;
+			}
+		}
+	}
+	return ok;
+}

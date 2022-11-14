@@ -126,6 +126,24 @@ int selec_leerText(FILE* pFile, char* idStr,char* paisStr,char* confederacionStr
 	}
 	return ok;
 }
+int selec_escribirText(FILE* pArchivo, Seleccion* pSeleccion){
+	int ok;
+	int id;
+	char pais[30];
+	char confederacion[30];
+	int convocados;
+	ok = 0;
+
+	if(pArchivo != NULL && pSeleccion != NULL){
+		ok = 1;
+		selec_getId(pSeleccion, &id);
+		selec_getPais(pSeleccion, pais);
+		selec_getConfederacion(pSeleccion, confederacion);
+		selec_getConvocados(pSeleccion, &convocados);
+		fprintf(pArchivo,"%d,%s,%s,%d\n",id,pais,confederacion,convocados);
+	}
+	return ok;
+}
 int selec_mostrar(Seleccion* this){
 	int id;
 	char pais[30];

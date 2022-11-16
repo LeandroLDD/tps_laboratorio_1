@@ -280,36 +280,68 @@ int controller_mostrarPaisSiConvocado(Jugador* pJugador ,LinkedList* pArrayListS
 	return ok;
 }
 
-int controller_convocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArrayListJugador, LinkedList* pArrayListGentilicio){
+int controller_obtenerJugadoresConvocables(int idSelecConvocar, LinkedList* listaJugadoresConvocablesRetorno,LinkedList* pArrayListSeleccion, LinkedList* pArrayListJugador, LinkedList* pArrayListGentilicio){
 	int ok;
-	int idSelecConvocar;
-	int idJugadorConvocar;
 	char nacionalidadConcovar[50];
 	Gentilicio* nacionalidadConvocar;
-	LinkedList* listaJugadoresConvocar;
-	Jugador* JugadorConvocar;
 	Seleccion* selecConvocar;
 	int cantidadConvocados;
-	listaJugadoresConvocar = ll_newLinkedList();
-	ok = -2;
-	if(controller_validarLinkedList(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion) && controller_validarLinkedList(pArrayListGentilicio)){
-		ok = -1;
-		idSelecConvocar = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga una seleccion");//Pide la id de la selec
+	int maxJugadores = 22;
 
+	ok = -1;
+	if(controller_validarSeleccionPorID(pArrayListSeleccion, idSelecConvocar) && controller_validarLinkedList(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion) && controller_validarLinkedList(pArrayListGentilicio)){
+		ok = 1;
 		selecConvocar = controller_obtenerSeleccionPorID(pArrayListSeleccion, idSelecConvocar);
 		selec_getConvocados(selecConvocar, &cantidadConvocados);
 
 		nacionalidadConvocar = controller_obtenerGentilicioPorID(idSelecConvocar, pArrayListGentilicio);//Con la id obtengo la nacionalidad
 		gen_getDescripcion(nacionalidadConvocar, nacionalidadConcovar);
-
-		if(cantidadConvocados < 22){
+		if(cantidadConvocados >= maxJugadores || !controller_obtenerLinkedListFiltro(pArrayListJugador, listaJugadoresConvocablesRetorno, controller_esJugadorNacionalidad, nacionalidadConcovar)){
 			ok = 0;
-			if(controller_obtenerLinkedListFiltro(pArrayListJugador, listaJugadoresConvocar, controller_esJugadorNacionalidad, nacionalidadConcovar)){
-				ok = 1;
+		}
+	}
+	return ok;
+}
+
+int controller_menuConvocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArrayListJugador, LinkedList* pArrayListGentilicio){
+	int ok;
+	int idSelecConvocar;
+	int idJugadorConvocar;
+	LinkedList* listaJugadoresConvocar;
+	Jugador* JugadorConvocar;
+	Seleccion* selecConvocar;
+	int cantidadConvocados;
+	int banderaError;
+	int maxJugadores = 22;
+	listaJugadoresConvocar = ll_newLinkedList();
+	ok = -1;
+	if(controller_validarLinkedList(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion) && controller_validarLinkedList(pArrayListGentilicio)){
+		ok = 0;
+		if(controller_validarLinkedListFiltro(pArrayListJugador,controller_esJugadorConvocado,0) && controller_validarLinkedListFiltro(pArrayListSeleccion,controller_esSeleccionCantidadConvocadosMenor,&maxJugadores)){
+			ok = 1;
+			do{
+				banderaError = 0;
+				idSelecConvocar = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga una seleccion (0. Atras)",1,0);//Pide la id de la selec
+				if(idSelecConvocar == 0){
+					ok = -2;
+					break;
+				}
+				if(controller_obtenerJugadoresConvocables(idSelecConvocar, listaJugadoresConvocar, pArrayListSeleccion, pArrayListJugador, pArrayListGentilicio) == 0){
+					banderaError = 1;
+					imprAviso("¡Seleccion invalida!\n"
+							  "*Posibles cuasas\n"
+							  "- La seleccion llego a la maxima cantidad de jugadores\n"
+							  "- No hay jugadores disponbiles en el pais\n");
+				}
+			}while(banderaError);
+			if(idSelecConvocar != 0){
 				idJugadorConvocar = controller_pedirJugadorPorID(listaJugadoresConvocar, "Eliga la ID de un jugador",1);
 				JugadorConvocar = controller_obtenerJugadorPorID(pArrayListJugador, idJugadorConvocar);
 
 				jug_setIdSeleccion(JugadorConvocar, idSelecConvocar);
+
+				selecConvocar = controller_obtenerSeleccionPorID(pArrayListSeleccion, idSelecConvocar);
+				selec_getConvocados(selecConvocar, &cantidadConvocados);
 				selec_setConvocados(selecConvocar, cantidadConvocados+1);
 			}
 		}
@@ -454,6 +486,30 @@ int controller_guardarJugadoresFiltradosModoBinario(char* path , LinkedList* pAr
 		}
 	}
 
+	return ok;
+}
+
+int controller_guardarJugadoresDeUnaConfederacionModoBinario(char* path, LinkedList* pArrayListJugador, LinkedList* pArrayListSeleccion){
+	int ok;
+	int banderaObtenerJugadorsConvocados;
+	int idSeleccionesConvocados;
+	LinkedList* SeleccionesConvocados;
+	ok = -1;
+
+	if(path != NULL && controller_hayJugadoresConvocados(pArrayListJugador) && controller_validarLinkedList(pArrayListSeleccion)){
+		ok = 0;
+
+		SeleccionesConvocados = ll_newLinkedList();
+		banderaObtenerJugadorsConvocados = 1;
+		controller_obtenerLinkedListFiltro(pArrayListSeleccion, SeleccionesConvocados, controller_esSeleccionConvocados, &banderaObtenerJugadorsConvocados);
+		idSeleccionesConvocados = controller_pedirSeleccionPorID(SeleccionesConvocados, "Eliga la ID de la confederacion a guardar jugadores (0. Atras)",1,0);
+
+		if(idSeleccionesConvocados != 0){
+			ok = 1;
+			controller_guardarJugadoresFiltradosModoBinario(path, pArrayListJugador, &idSeleccionesConvocados, controller_esJugadorIdSeleccion);
+			ll_deleteLinkedList(SeleccionesConvocados);
+		}
+	}
 	return ok;
 }
 
@@ -737,7 +793,7 @@ int controller_pedirJugadorNacionalidad(Jugador* this, LinkedList* pArrayListSel
 
 	if(this != NULL && pArrayListSeleccion != NULL){
 		ok = 0;
-		idPaisElegido = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga la ID del pais");
+		idPaisElegido = controller_pedirSeleccionPorID(pArrayListSeleccion, "Eliga la ID del pais",0,0);
 		pPaisElegido = controller_obtenerSeleccionPorID(pArrayListSeleccion, idPaisElegido);
 		selec_getPais(pPaisElegido, gentilicio);//De forma predeterminada se guarda el pais
 
@@ -922,7 +978,7 @@ int controller_esJugadorNacionalidad(LinkedList* pArrayListJugador,int indiceArr
 	return ok;
 }
 
-int controller_pedirSeleccionPorID(LinkedList* pArrayListSeleccion, char* msj){
+int controller_pedirSeleccionPorID(LinkedList* pArrayListSeleccion, char* msj, short agregarOpcSalir, int opcSalir){
 	int idElegida;
 	int banderaSeleccionExiste;
 	idElegida = -1;
@@ -931,6 +987,10 @@ int controller_pedirSeleccionPorID(LinkedList* pArrayListSeleccion, char* msj){
 		controller_listarSelecciones(pArrayListSeleccion);
 		do{
 			imprYGuardarEntero(msj, &idElegida);
+
+			if(agregarOpcSalir == 1 && idElegida == opcSalir){
+				break;
+			}
 			banderaSeleccionExiste = controller_validarSeleccionPorID(pArrayListSeleccion, idElegida);
 			if(!banderaSeleccionExiste){
 				imprAviso("¡La ID no existe!");
@@ -995,6 +1055,27 @@ int controller_esSeleccionConvocados(LinkedList* pArrayListSeleccion, int indice
 		}
 		if(cantidadConvocados == 0 && *banderaValidarConvocados == 0){
 			ok = 0;
+		}
+	}
+
+	return ok;
+}
+
+int controller_esSeleccionCantidadConvocadosMenor(LinkedList* pArrayListSeleccion, int indiceArray, void* cantConvocados){
+	int ok;
+	int *ptrCantConvocados;
+	int cantidadConvocados;
+
+	Seleccion* auxSeleccion;
+	ok = -1;
+
+	if(controller_validarLinkedList(pArrayListSeleccion)){
+		ok = 0;
+		ptrCantConvocados = cantConvocados;
+		auxSeleccion = ll_get(pArrayListSeleccion, indiceArray);
+		selec_getConvocados(auxSeleccion, &cantidadConvocados);
+		if(cantidadConvocados < *ptrCantConvocados){
+			ok = 1;
 		}
 	}
 

@@ -47,8 +47,6 @@ int main()
     int banderaBinaria;
     int banderaCambiosRealizados;
     int idDisponible;
-    int idAuxiliar;
-    int numAxiliar;
     char rutaIDs[50] = "jugadorIDdisponible.txt";
     char rutaJugadores[50] = "jugadores.csv";
     char rutaSelecciones[50] = "selecciones.csv";
@@ -60,9 +58,6 @@ int main()
 
     do{
     	atras = 0;
-    	printf("TAM jug: %d\n",ll_len(listaJugadores));
-    	printf("TAM selec: %d\n",ll_len(listaSelecciones));
-    	printf("TAM Gentilicios: %d\n",ll_len(listaGentilicios));
         switch(mostrarMenuYElegirOpcionNumerico("MENU FIFA", "Eliga una opcion", "Respuesta invalida", menuPrincipal, 11))
         {
             case 1:
@@ -144,21 +139,14 @@ int main()
             	do{
             		switch(mostrarMenuYElegirOpcionAlfanumerico("MENU CONVOCAR JUGADORES", "Eliga una opcion", "Respuesta invalida", menuConvocarJugadores, 3)){
             			case 'A':
-            				banderaBinaria = 0;
-            				numAxiliar = 0;
-            				if(!controller_validarLinkedList(listaJugadores) && !controller_validarLinkedList(listaSelecciones)){
-            					imprAviso("¡Faltan jugadores y/o selecciones!");
-            					break;
-            				}
-            				if(!controller_validarLinkedListFiltro(listaJugadores,controller_esJugadorConvocado,&numAxiliar)){
-            					imprAviso("¡No hay ningun cupo para ninguna seleccion!");
-            					break;
-            				}
-							banderaBinaria = controller_convocarJugador(listaSelecciones, listaJugadores,listaGentilicios);
+							banderaBinaria = controller_menuConvocarJugador(listaSelecciones, listaJugadores,listaGentilicios);
 							if(banderaBinaria == 1){
 								banderaCambiosRealizados = 1;
 							}
-							avisoBinarioExtendido(banderaBinaria, "¡Jugador convocado exitosamente!","¡No hay jugadores en este pais!","¡Llego a la cantidad maxima de jugadres para está seleccion!");
+							if(banderaBinaria == -2){
+								break;
+							}
+							avisoBinarioExtendido(banderaBinaria, "¡Jugador convocado exitosamente!","¡No hay mas cupos para convocar de ninguna seleccion!","¡Faltan selecciones y/o selecciones!");
 						break;
 
             			case 'B':
@@ -207,20 +195,14 @@ int main()
 			break;
 
             case 8:
-            	banderaBinaria = controller_hayJugadoresConvocados(listaJugadores);
+            	banderaBinaria = controller_guardarJugadoresDeUnaConfederacionModoBinario(rutaJugadoresConfedearcion, listaJugadores, listaSelecciones);
             	if(banderaBinaria == 1){
-            		listaAuxiliar = ll_newLinkedList();
-            		numAxiliar = 1;
-            		controller_obtenerLinkedListFiltro(listaSelecciones, listaAuxiliar, controller_esSeleccionConvocados, &numAxiliar);
-            		idAuxiliar = controller_pedirSeleccionPorID(listaAuxiliar, "Eliga la ID de la confederacion a guardar jugadores");
-
-					controller_guardarJugadoresFiltradosModoBinario(rutaJugadoresConfedearcion, listaJugadores, &idAuxiliar, controller_esJugadorIdSeleccion);
-					ll_deleteLinkedList(listaAuxiliar);
-					imprAviso("¡El archivo binario se genero exitosamente!");
-            	}
-            	else{
-            		imprAviso("¡No hay ningun jugador convocado!");
-            	}
+					banderaCambiosRealizados = 1;
+				}
+            	if(banderaBinaria == 0){
+					break;
+				}
+            	avisoBinario(banderaBinaria, "¡El archivo binario se genero exitosamente!", "¡No hay ningun jugador convocado!");
 			break;
 
             case 9:
@@ -246,13 +228,12 @@ int main()
             	}
 
 				banderaBinaria = controller_guardarJugadoresModoTexto(rutaJugadores, listaJugadores);
-				if(banderaBinaria == 1){
-					controller_escribirIDEnTXT(rutaIDs, idDisponible);
-				}
 				avisoBinario(banderaBinaria, "¡Se guardaron los jugadores exitosamente!", "¡Error al intentar guardar los jugadores");
 
 				banderaBinaria = controller_guardarSeleccionesModoTexto(rutaSelecciones, listaSelecciones);
 				avisoBinario(banderaBinaria, "¡Se guardaron las selecciones exitosamente!", "¡Error al intentar guardar las selecciones");
+
+				controller_escribirIDEnTXT(rutaIDs, idDisponible);
 				banderaCambiosRealizados = 0;
 			break;
 

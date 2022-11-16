@@ -98,13 +98,24 @@ int controller_mostrarUnJugador(Jugador* pJugador, LinkedList* pArrayListSelecci
 int controller_mostrarPaisSiConvocado(Jugador* pJugador ,LinkedList* pArrayListSeleccion);
 
 /**
+ * @brief Realiza todas las validaciones sobre convocatorias y devielve por parametro una lista de jugadores de una seleccion
+ * @param idSelecConvocar Seleccion a validar
+ * @param listaJugadoresConvocablesRetorno Donde se retornara los jugadores de idSelecConvocar
+ * @param pArrayListSeleccion Lista de selecciones
+ * @param pArrayListJugador Lista de jugadores
+ * @param pArrayListGentilicio Lista de gentilicios
+ * @return Retorno binario. -1. Error en parametros | 0. Error en validaciones de convocatoria | 1. Correcto funcionamiento
+ */
+int controller_obtenerJugadoresConvocables(int idSelecConvocar, LinkedList* listaJugadoresConvocablesRetorno,LinkedList* pArrayListSeleccion, LinkedList* pArrayListJugador, LinkedList* pArrayListGentilicio);
+
+/**
  * @brief De una lista de selecciones convoca un jugador de una lista de jugadores filtrados por pais
  * @param pArrayListSeleccion Lista de jugadores
  * @param pArrayListSeleccion Lista de selecciones
  * @param pArrayListGentilicio Lista de gentilicios
  * @return Retorno binario extendido. -2. Error en parametros | -1. El pais elegido no puede convocar | 0. No hay jugadores del pais elegido | 1. Correcto funcionamiento
  */
-int controller_convocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArrayListJugador, LinkedList* pArrayListGentilicio);
+int controller_menuConvocarJugador(LinkedList* pArrayListSeleccion, LinkedList* pArrayListJugador, LinkedList* pArrayListGentilicio);
 
 /**
  * @brief De una lista de selecciones desconvoca un jugador de una lista de jugadores filtrados por pais
@@ -151,12 +162,21 @@ int controller_guardarJugadoresModoBinario(char* path , LinkedList* pArrayListJu
 int controller_guardarJugadoresFiltradosModoBinario(char* path , LinkedList* pArrayListJugador, void* criterio, int (*pFunc)(LinkedList*,int indice, void*));
 
 /**
+ * @brief Guarda todos los jugadores de una confederacion en un archivo binario
+ * @param path Ruta del archivo
+ * @param pArrayListJugador Lista de jugadores
+ * @param pArrayListSeleccion Lista de selecciones
+ * @return Retorno binario. -1. Error en parametros | 0. No guardo | 1. Correcto funcionamiento
+ */
+int controller_guardarJugadoresDeUnaConfederacionModoBinario(char* path, LinkedList* pArrayListJugador, LinkedList* pArrayListSeleccion);
+
+/**
  * @brief Carga los datos de un archivo de texto a una lista de selecciones
  * @param path Ruta del archivo
  * @param pArrayListSeleccion Lista de selecciones
  * @return Retorno binario. -1. Error en parametros | 0. No se pudo abrir el archivo | 1. Correcto funcionamiento
  */
-int controller_cargarSeleccionesDesdeTexto(char* path , LinkedList* pArrayListSeleccion);
+int controller_cargarSeleccionesDesdeTexto(char* path, LinkedList* pArrayListSeleccion);
 
 int controller_editarSeleccion(LinkedList* pArrayListSeleccion);
 
@@ -338,9 +358,11 @@ int controller_esJugadorNacionalidad(LinkedList* pArrayListJugador,int indiceArr
  * @brief Pide por consola la ID de una seleccion en lista
  * @param pArrayListSeleccion Lista de selecciones
  * @param msj Mensaje de pedido por consola
+ * @param agregarOpcSalir 1. Agregara una opcion de salir
+ * @param opcSalir Opcion de salir (Solo funciona cuando agregarOpcSalir es 1)
  * @return Retorna la ID elegida | Caso contrario -1
  */
-int controller_pedirSeleccionPorID(LinkedList* pArrayListSeleccion, char* msj);
+int controller_pedirSeleccionPorID(LinkedList* pArrayListSeleccion, char* msj, short agregarOpcSalir, int opcSalir);
 
 /**
  * @brief Valida que una ID este asociada a una seleccion en lista
@@ -361,11 +383,20 @@ Seleccion* controller_obtenerSeleccionPorID(LinkedList* pArrayListSeleccion, int
 /**
  * @brief Valida si una seleccion tiene convocados o no
  * @param pArrayListSeleccion Lista de selecciones
- * @param indiceArray indice del pArrayListSeleccion del jugador a validar
+ * @param indiceArray Indice del pArrayListSeleccion de la seleccion a validar
  * @param validConvocados 1. Valida SI tiene convocados | 0. Valida NO tiene convocados
  * @return Retorno binario extendido. -1. Error en parametros | 1. Se cumplio la condicion | 0. NO cumplio la condicion
  */
 int controller_esSeleccionConvocados(LinkedList* pArrayListSeleccion, int indiceArray, void* validConvocados);
+
+/**
+ * @brief Valida si los convocados de una selecciones es menor que cantConvocados
+ * @param pArrayListSeleccion Lista de selecciones
+ * @param indiceArray Indice del pArrayListSeleccion de la seleccion a validar
+ * @param cantConvocados Cantidad de convocados
+ * @return Retorno binario extendido. -1. Error en parametros | 1. Se cumplio la condicion | 0. NO cumplio la condicion
+ */
+int controller_esSeleccionCantidadConvocadosMenor(LinkedList* pArrayListSeleccion, int indiceArray, void* cantConvocados);
 
 /**
  * @brief Leé un archivo de tipo txt y retorna la ID

@@ -6,13 +6,11 @@
  ============================================================================
  */
 
-#include "msjEnPantalla.h"
-#include "leanvectores.h"
 #include "funcFutbol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
-#include <ctype.h>
+#include "generales.h"
 
 int main(void) {
 	setbuf(stdout,NULL);
@@ -25,18 +23,16 @@ int main(void) {
 
 	//Carga de Jugadores
 	int cantidadDeJugadoresTotal;
-	int arqueros;
-	int defensores;
-	int mediocampistas;
-	int delanteros;
-	int posicionSeleccionada;
-	int camisetasSeleccionadas[MAXJUGADORES];
-	int cantidadUefa;
-	int cantidadConmebol;
-	int cantidadConcacaf;
-	int cantidadAfc;
-	int cantidadOfc;
-	int cantidadCaf;
+	int contadorArqueros;
+	int contadorDefensores;
+	int contadorMediocampistas;
+	int contadorDelanteros;
+	int contadorUefa;
+	int contadorConmebol;
+	int contadorConcacaf;
+	int contadorAfc;
+	int contadorOfc;
+	int contadorCaf;
 	int banderaJugadoresCargados;
 
 	//Calculos
@@ -48,10 +44,12 @@ int main(void) {
 	float promedioCaf;
 	int mantenimiento;
 	int aumentoEuropeo;
-	int mantenimientoTotal;
+	int manteniminetoAumentoEuropa;
 	int banderaCalculosRealizados;
 
 	int rptMenuPrincipal; //Opcion selecionada en el menu
+	int banderaAuxiliar;
+	int numAux;
 
 	hospedaje = 0;
 	comida = 0;
@@ -59,18 +57,17 @@ int main(void) {
 	banderaCostosCargados = 0;
 
 	cantidadDeJugadoresTotal = 0;
-	arqueros = 0;
-	defensores = 0;
-	mediocampistas = 0;
-	delanteros = 0;
-	cantidadUefa = 0;
-	cantidadConmebol = 0;
-	cantidadConcacaf = 0;
-	cantidadAfc = 0;
-	cantidadOfc = 0;
-	cantidadCaf = 0;
+	contadorArqueros = 0;
+	contadorDefensores = 0;
+	contadorMediocampistas = 0;
+	contadorDelanteros = 0;
+	contadorUefa = 0;
+	contadorConmebol = 0;
+	contadorConcacaf = 0;
+	contadorAfc = 0;
+	contadorOfc = 0;
+	contadorCaf = 0;
 	banderaJugadoresCargados = 0;
-	rellenarVector(camisetasSeleccionadas, MAXJUGADORES, 0);
 
 	promedioUefa = 0;
 	promedioConmebol = 0;
@@ -79,7 +76,7 @@ int main(void) {
 	promedioOfc = 0;
 	promedioCaf = 0;
 	aumentoEuropeo = 0;
-	mantenimientoTotal = 0;
+	manteniminetoAumentoEuropa = 0;
 	banderaCalculosRealizados = 0;
 	mantenimiento = 0;
 
@@ -100,104 +97,81 @@ int main(void) {
 				"\n Delanteros -> %d"
 				"\n3.Realizar todos los calculos"
 				"\n4.Informar todos los resultados"
-				"\n5.Salir\n",hospedaje,comida,transporte,arqueros,defensores,mediocampistas,delanteros);
+				"\n5.Salir\n",hospedaje,comida,transporte,contadorArqueros,contadorDefensores,contadorMediocampistas,contadorDelanteros);
 
 		rptMenuPrincipal = imprYGuardarNumConMinYMax("\nSeleccione una opcion ","Respuesta invalida",1,5,0);
 
 		switch(rptMenuPrincipal){//switch de opciones del menu principal
 
 			case 1://------------INGRESO DE LOS COSTOS DE MANTENIMIENTO-----------
-				cargarCosto(&hospedaje, &comida, &transporte, &banderaCostosCargados);
+				banderaAuxiliar = cargarCosto(hospedaje, comida, transporte);
+
+				if(banderaAuxiliar != 4){
+					modificarCosto(&hospedaje, &comida, &transporte, banderaAuxiliar);
+
+					if(hospedaje != 0 && comida != 0 && transporte != 0){//Si se cargaron todos los costos
+						banderaCostosCargados = 1;
+					}
+					imprAviso("¡Se cargo el costo exitosamente!");
+				}
 
 			break;
 
 			case 2://------------------------CARGA DE JUGADORES----------------------
-				if(cantidadDeJugadoresTotal == MAXJUGADORES){
-					imprAviso("\nYa llego a la cantidad maxima de jugadores que pueden estar en el plantel");
-					break;
+				banderaAuxiliar = cargarJugador(contadorArqueros, contadorDefensores, contadorMediocampistas, contadorDelanteros);
+
+				if(banderaAuxiliar != 5 && banderaAuxiliar != -1){
+					aumentarContadorPosicionJugador(&contadorArqueros, &contadorDefensores, &contadorMediocampistas, &contadorDelanteros, banderaAuxiliar);
+
+					pedirCamisetaJugador();
+
+					numAux = pedirConfederacionJugador(contadorUefa, contadorConmebol, contadorConcacaf, contadorAfc, contadorOfc, contadorCaf);
+					aumentarContadorConfederacion(&contadorUefa, &contadorConmebol, &contadorConcacaf, &contadorAfc, &contadorOfc, &contadorCaf, numAux);
+
+					banderaJugadoresCargados = 1;
+					cantidadDeJugadoresTotal = contadorArqueros + contadorDefensores + contadorMediocampistas + contadorDelanteros;
+					imprAviso("¡Se cargo el jugador exitosamente!");
 				}
-				system("cls"); //Limpia la pantalla (Solo funciona con el .exe)
-				printf("\t\tCarga de jugadores\n"
-						"\t\t==================\n"
-						"\n1.Arqueros -> %d"
-						"\n2.Defensores -> %d"
-						"\n3.Mediocampistas -> %d"
-						"\n4.Delanteros -> %d"
-						"\n5.Volver al menu\n",arqueros,defensores,mediocampistas,delanteros);
-				do{//Do While para validar si la posicion seleccionada llego al limite de jugadores
-					posicionSeleccionada = imprYGuardarNumConMinYMax("\nSeleccione una posicion ","Posicion Invalida",1, 5,0);
-			    }while(posicionSeleccionada != 5 && !validarPosicionDisponible(arqueros, defensores, mediocampistas, delanteros, posicionSeleccionada,1));
-
-				if(posicionSeleccionada == 5){
-					break;
-				}
-				pedirPosicionJugador(&arqueros, &defensores, &mediocampistas, &delanteros, posicionSeleccionada);
-
-				pedirCamiseta(camisetasSeleccionadas);
-
-				pedirConfederacion(&cantidadUefa, &cantidadConmebol, &cantidadConcacaf, &cantidadAfc, &cantidadOfc, &cantidadCaf);
-
-				banderaJugadoresCargados = 1;
-				cantidadDeJugadoresTotal = arqueros + defensores + mediocampistas + delanteros;
+				imprSi("\nYa llego a la cantidad maxima de jugadores que pueden estar en el plantel", banderaAuxiliar, -1);
 
 			break;
 
 			case 3: //-----------------REALIZAR TODOS LOS CALCULOS-----------------
-				if(!validarBanderaBinaria("Faltan cargar Costos", banderaCostosCargados) || !validarBanderaBinaria("Faltan cargar Jugadores", banderaJugadoresCargados)){//Pregunta si faltan datos por cargar
-					//imprDobleOpcionIgualACero("\nFaltan cargar datos de ", "Costos", banderaCostosCargados, "Jugadores", banderaJugadoresCargados);
-					break;
-				};
+				if(validarRealizarCalculos(banderaCostosCargados, banderaJugadoresCargados)){
 
-				promedioUefa = (float)cantidadUefa / 6;
-				promedioConmebol = (float)cantidadConmebol / 6;
-				promedioConcacaf = (float)cantidadConcacaf / 6;
-				promedioAfc = (float)cantidadAfc / 6;
-				promedioOfc = (float)cantidadOfc / 6;
-				promedioCaf = (float)cantidadCaf / 6;
+					promedioUefa = ((float)contadorUefa / cantidadDeJugadoresTotal)*100;
+					promedioConmebol = ((float)contadorConmebol / cantidadDeJugadoresTotal)*100;
+					promedioConcacaf = ((float)contadorConcacaf / cantidadDeJugadoresTotal)*100;
+					promedioAfc = ((float)contadorAfc / cantidadDeJugadoresTotal)*100;
+					promedioOfc = ((float)contadorOfc / cantidadDeJugadoresTotal)*100;
+					promedioCaf = ((float)contadorCaf / cantidadDeJugadoresTotal)*100;
 
-				mantenimiento = hospedaje + comida + transporte;
+					mantenimiento = hospedaje + comida + transporte;
 
-				if(cantidadUefa > (cantidadDeJugadoresTotal - cantidadUefa)){
-					//Si cantidadUefa es mayor a la cantidad de jugadors de las demas confederaciones entra al if
-					aumentoEuropeo = ((float)PORCENTAJEDEAUMENTOEUROPEO/100) * mantenimiento;
-					mantenimientoTotal = aumentoEuropeo + mantenimiento;
+					aumentoEuropeo = realizarAumentoEuropeo(contadorUefa, cantidadDeJugadoresTotal, mantenimiento);
+					manteniminetoAumentoEuropa = aumentoEuropeo + mantenimiento;
+
+					banderaCalculosRealizados = 1;
+					imprAviso("Se realizaron todos los calculos correctamente\n");
 				}
-				else{
-					aumentoEuropeo = 0;
-					mantenimientoTotal = 0;
-				}
-				banderaCalculosRealizados = 1;
-				printf("\n\tSe realizaron todos los calculos correctamente\n\n");
-				system("pause");
+				imprSi("Faltan cargar Costos", banderaCostosCargados, 0);
+				imprSi("Faltan cargar Jugadores", banderaJugadoresCargados, 0);
 			break;
 
 			case 4://----------------INFORMAR TODOS LOS RESULTADOS-------------------
-				if(!banderaCalculosRealizados){
-					imprAviso("\nFaltan realizar los Calculos");
-					break;
+				if(banderaCalculosRealizados){
+
+					informarPromedioConfederaciones(promedioUefa, promedioConmebol, promedioConcacaf, promedioAfc, promedioOfc, promedioCaf);
+					informarCostosDeMantenimiento(mantenimiento, aumentoEuropeo, manteniminetoAumentoEuropa);
 				};
-
-				system("cls"); //Limpia la pantalla (Solo funciona con el .exe)
-				printf("\t\tInformar todos los Resultados\n"
-						"\t\t=============================\n"
-						"\nPromedio UEFA %.2f"
-						"\nPromedio CONMEBOL %.2f"
-						"\nPromedio CONCACAF %.2f"
-						"\nPromedio AFC %.2f"
-						"\nPromedio OFC %.2f"
-						"\nPromedio CAF %.2f",promedioUefa,promedioConmebol,promedioConcacaf,promedioAfc,promedioOfc,promedioCaf);
-
-				if(aumentoEuropeo == 0){
-					printf("\n\nEl costo de mantenimiento es de $%d\n\n",mantenimiento);
-				}
-				else{
-					printf("\n\nEl costo de mantenimiento era de $%d y recibio un aumento de $%d, su nuevo valor es de $%d\n\n",mantenimiento,aumentoEuropeo,mantenimientoTotal);
-				}
-				system("pause");
+				imprSi("\nFaltan realizar los Calculos", banderaCalculosRealizados, 0);
 			break;
 
 			case 5://-------------------------SALIR------------------------
-				exit(1);
+				banderaAuxiliar = imprYGuardarNumConMinYMax("¿Desea salir del programa? (1. Si | 0. No) ", "Respuesta invalida", 0, 1, 0);
+				if(!banderaAuxiliar){
+					rptMenuPrincipal = 0;
+				}
 			break;
 		}
 
